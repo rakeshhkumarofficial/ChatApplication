@@ -39,6 +39,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddDbContext<ChatAPIDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ChatAPIConnectionStrings")));
 
+builder.Services.AddCors(options => options.AddPolicy(name: "CorsPolicy",
+    policy =>
+    {
+        policy.WithOrigins().AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin();
+    }
+));
 
 var app = builder.Build();
 
@@ -50,6 +56,8 @@ var app = builder.Build();
 
 
 app.UseHttpsRedirection();
+
+app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
 

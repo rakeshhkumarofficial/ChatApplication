@@ -31,14 +31,13 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
-        [HttpGet]
-        public IActionResult Login(string Email, string Password)
+        [HttpPost]
+        public IActionResult Login(Login login)
         {
             IUserService service = new UserService(_dbContext, _configuration);
-            var token = service.Login(Email, Password, _configuration);
+            var token = service.Login(login, _configuration);
             return Ok(token);
         }
-
 
     }
 }

@@ -42,6 +42,7 @@ namespace ChatApplication.Services
                 };
                 _dbContext.Users.Add(obj);
                 _dbContext.SaveChanges();
+                string token = CreateToken(obj, _configuration);
                 int len = obj == null ? 0 : 1;
                 Response response = new Response();
                 if (len == 0)
@@ -53,12 +54,13 @@ namespace ChatApplication.Services
                 }
                 if (len == 1)
                 {
-                    response.Data = obj;
+                    response.Data = token;
                     response.StatusCode = 200;
                     response.Message = "User Added Successfully";
                 }
                 return response;
             }
+            
 
             Response res = new Response();
             res.Data = null;
@@ -75,10 +77,10 @@ namespace ChatApplication.Services
                 PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Password));
             }
         }
-        public Response Login(string Email, string Password, IConfiguration _configuration)
+        public Response Login(Login login, IConfiguration _configuration)
         {
             
-            var obj = _dbContext.Users.Where(u=>u.Email == Email).FirstOrDefault();
+            var obj = _dbContext.Users.Where(u=>u.Email == login.Email).FirstOrDefault();
             Response response = new Response();
             if (obj == null)
             {
@@ -87,7 +89,7 @@ namespace ChatApplication.Services
                 response.Message = "Wrong Email";
                 return response;
             }
-            if (!VerifyPasswordHash(Password, obj.PasswordHash,obj.PasswordSalt))
+            if (!VerifyPasswordHash(login.Password, obj.PasswordHash,obj.PasswordSalt))
             {
                 response.Data = null;
                 response.StatusCode = 404;
@@ -98,7 +100,7 @@ namespace ChatApplication.Services
            
             response.Data = token;
             response.StatusCode = 200;
-            response.Message = "Token";
+            response.Message = "Login Successfully";
             return response;
         }
         private string CreateToken(User obj, IConfiguration _configuration)
