@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml;
 
 namespace ChatApplication.Services
 {
@@ -186,6 +187,34 @@ namespace ChatApplication.Services
                 res.Message = "Not Found";
             }
             return res;
+        }
+
+        // Update User
+        public Response UpdateUser(Guid UserId, UpdateUser update)
+        {
+            var obj = _dbContext.Users.Find(UserId);
+            int len = obj == null ? 0 : 1;
+            Response res = new Response();
+            if (len == 0)
+            {
+                res.StatusCode = 404;
+                res.Message = "Not Found";
+                res.Data = obj;
+                return res;
+            }
+
+            if (update.FirstName != "string" ) { obj.FirstName = update.FirstName; }
+            if (update.LastName != "string" ) { obj.LastName = update.LastName; }
+            if (update.Phone != 0) { obj.Phone = update.Phone; }
+            if (update.Email != "user@example.com" ) { obj.Email = update.Email; }
+            if (update.DateOfBirth != DateTime.Now) { obj.DateOfBirth = update.DateOfBirth; }
+            obj.UpdatedAt = DateTime.Now;
+
+            _dbContext.SaveChanges(); 
+             res.Data = obj;
+             res.StatusCode = 200;
+             res.Message = "User details updated";
+            return res;    
         }
 
     }

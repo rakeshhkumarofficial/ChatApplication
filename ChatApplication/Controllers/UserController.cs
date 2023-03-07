@@ -46,6 +46,12 @@ namespace ChatApplication.Controllers
             var res = service.GetUser(UserId, FirstName,LastName, Phone,sort, pageNumber, records);
             return Ok(res);
         }
-
+        [HttpPost]
+        public IActionResult UpdateUser(Guid UserId, UpdateUser update)
+        {
+            IUserService service = new UserService(_dbContext,_configuration);
+            var res = service.UpdateUser(UserId,update);
+            return Ok(res);
+        }
     }
 }
