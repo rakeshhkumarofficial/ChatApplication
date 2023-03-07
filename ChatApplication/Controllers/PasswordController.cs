@@ -13,6 +13,9 @@ using NETCore.MailKit.Infrastructure.Internal;
 using System.Net.Mail;
 using System.Net;
 using static System.Net.WebRequestMethods;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ChatApplication.Controllers
 {
@@ -45,7 +48,7 @@ namespace ChatApplication.Controllers
             ForgetPassword p = new ForgetPassword();
             p.Id = Guid.NewGuid();
             p.Email = email ;
-            p.ResetPasswordToken = CreateRandomToken();
+            p.ResetPasswordToken = CreateToken(user,_configuration);
             p.OneTimePass = otp;
             p.ExpiresAt = DateTime.Now.AddDays(1);
             _dbContext.ForgetPasswords.Add(p);
@@ -66,6 +69,7 @@ namespace ChatApplication.Controllers
 
             return Ok("Verification mail is sent");
         }
+
         [HttpPost]
         [Authorize]
         [Route("Reset-Password")]
@@ -92,8 +96,9 @@ namespace ChatApplication.Controllers
             res.Data = resuser; 
             res.StatusCode = 200;
             res.Message = "Password Reset Successfully";
-            user.ExpiresAt = DateTime.Parse(null);
-            user.ResetPasswordToken = null;
+            _dbContext.Remove(user);
+            _dbContext.SaveChanges();
+
             return Ok(res);
         }
 
@@ -124,9 +129,21 @@ namespace ChatApplication.Controllers
         }
 
 
-        private string CreateRandomToken()
+        private string CreateToken(User obj, IConfiguration _configuration)
         {
-            return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name,obj.Email)
+           };
+            var Key = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
+            var creds = new SigningCredentials(Key, SecurityAlgorithms.HmacSha512Signature);
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+            );
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            return jwt;
         }
         private void CreatePasswordHash(string Password, out byte[] PasswordHash, out byte[] PasswordSalt)
         {
