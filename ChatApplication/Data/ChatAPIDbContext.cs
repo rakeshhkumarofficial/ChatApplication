@@ -9,5 +9,6 @@ namespace ChatApplication.Data
         {
         }
         public DbSet<User> Users { get; set; }
+        public DbSet<ForgetPassword> ForgetPasswords { get; set; }
     }
 }

@@ -2,10 +2,13 @@ using ChatApplication.Data;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+
 using System.Text;
+using NETCore.MailKit.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 

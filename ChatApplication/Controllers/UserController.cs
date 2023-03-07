@@ -40,14 +40,14 @@ namespace ChatApplication.Controllers
             return Ok(token);
         }
 
-        [HttpGet]
+        [HttpGet, Authorize]
         public IActionResult GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records)
         {
             IUserService service = new UserService(_dbContext, _configuration);
             var res = service.GetUser(UserId, FirstName,LastName, Phone,sort, pageNumber, records);
             return Ok(res);
         }
-        [HttpPost]
+        [HttpPost,Authorize]
         public IActionResult UpdateUser(Guid UserId, UpdateUser update)
         {
             IUserService service = new UserService(_dbContext,_configuration);
@@ -55,7 +55,7 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
-        [HttpDelete]
+        [HttpDelete,Authorize]
         public IActionResult DeleteUser(Guid UserId)
         {
             IUserService service = new UserService(_dbContext, _configuration);
