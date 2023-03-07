@@ -203,10 +203,10 @@ namespace ChatApplication.Services
                 return res;
             }
 
-            if (update.FirstName != "string" ) { obj.FirstName = update.FirstName; }
-            if (update.LastName != "string" ) { obj.LastName = update.LastName; }
+            if (update.FirstName != null ) { obj.FirstName = update.FirstName; }
+            if (update.LastName != null ) { obj.LastName = update.LastName; }
             if (update.Phone != 0) { obj.Phone = update.Phone; }
-            if (update.Email != "user@example.com" ) { obj.Email = update.Email; }
+            if (update.Email != null ) { obj.Email = update.Email; }
             if (update.DateOfBirth != DateTime.Now) { obj.DateOfBirth = update.DateOfBirth; }
             obj.UpdatedAt = DateTime.Now;
 

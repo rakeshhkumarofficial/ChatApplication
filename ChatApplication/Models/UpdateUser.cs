@@ -4,11 +4,11 @@ namespace ChatApplication.Models
 {
     public class UpdateUser
     {
-        public string? FirstName { get; set; } = "string";
-        public string? LastName { get; set; } = "string";
+        public string? FirstName { get; set; } 
+        public string? LastName { get; set; } 
 
         [EmailAddress]
-        public string? Email { get; set; } = "user@example.com";
+        public string? Email { get; set; } 
         public long Phone { get; set; } = 0;
        public DateTime DateOfBirth { get; set; } = DateTime.Now;
     }
