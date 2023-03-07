@@ -21,6 +21,8 @@ namespace ChatApplication.Services
             _dbContext = dbContext;
             _configuration = configuration;
         }
+
+        // Register User
         public Response AddUser(Register user)
         {
             bool IsUserExists = _dbContext.Users.Where(u=>u.Email == user.Email).Any();
@@ -127,6 +129,64 @@ namespace ChatApplication.Services
                 return computedHash.SequenceEqual(PasswordHash);
             }
         }
-       
+
+        // Get User
+        public Response GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records)
+        {
+            var users = _dbContext.Users;
+            var Userquery = _dbContext.Users.AsQueryable();
+            var userlist = from u in Userquery where u.IsDeleted == false select  new { u.UserId,u.FirstName,u.LastName,u.Phone,u.DateOfBirth,u.Email};
+            Response res = new Response();
+            res.StatusCode = 200;
+            res.Message = "User Details";
+            if (UserId == Guid.Empty && FirstName == null && LastName == null && Phone == 0 )
+            {
+                if (sort == -1)
+                {
+                    var sortDesc = from u in Userquery where u.IsDeleted == false orderby u.FirstName descending select new { u.UserId, u.FirstName, u.LastName, u.Phone, u.DateOfBirth, u.Email };
+                    res.Data = sortDesc;
+                    return res;
+                }
+                if (sort == 1)
+                {
+                    var sortAsc = from u in Userquery where u.IsDeleted == false orderby u.FirstName select new { u.UserId, u.FirstName, u.LastName, u.Phone, u.DateOfBirth, u.Email };
+                    res.Data = sortAsc;
+                    return res;
+                }
+                if (pageNumber != 0 && records != 0)
+                {
+                    var pageRecords = (userlist.Skip((pageNumber - 1) * records).Take(records));
+                    res.Data = pageRecords;
+                    if (pageRecords != null)
+                    {
+                        return res;
+                    }
+                }
+                res.Data = userlist;
+                return res;
+            }
+            var obj = from u in Userquery where u.IsDeleted == false && (u.UserId == UserId || UserId == Guid.Empty) && (u.FirstName == FirstName || FirstName == null) && (u.LastName == LastName || LastName == null) && (u.Phone == Phone || Phone == 0) select new { u.UserId, u.FirstName, u.LastName, u.Phone, u.DateOfBirth, u.Email };
+            if (sort == -1)
+            {
+                var sortDesc = from u in obj orderby u.FirstName descending select u;
+                res.Data = sortDesc;
+                return res;
+            }
+            if (sort == 1)
+            {
+                var sortAsc = from u in obj orderby u.FirstName select u;
+                res.Data = sortAsc;
+                return res;
+            }
+            res.Data = obj;
+            int len = obj.Count();
+            if (len == 0)
+            {
+                res.StatusCode = 404;
+                res.Message = "Not Found";
+            }
+            return res;
+        }
+
     }
 }

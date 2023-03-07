@@ -39,5 +39,13 @@ namespace ChatApplication.Controllers
             return Ok(token);
         }
 
+        [HttpGet]
+        public IActionResult GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records)
+        {
+            IUserService service = new UserService(_dbContext, _configuration);
+            var res = service.GetUser(UserId, FirstName,LastName, Phone,sort, pageNumber, records);
+            return Ok(res);
+        }
+
     }
 }

@@ -6,5 +6,6 @@ namespace ChatApplication.Services
     {
         public Response AddUser(Register user);
         public Response Login(Login login, IConfiguration _configuration);
+        public Response GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records);
     }
 }
