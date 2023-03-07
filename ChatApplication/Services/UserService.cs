@@ -217,5 +217,33 @@ namespace ChatApplication.Services
             return res;    
         }
 
+        // Delete User
+        public Response DeleteUser(Guid UserId)
+        {
+            var obj = _dbContext.Users.Find(UserId);
+            int len = obj == null ? 0 : 1;
+            Response response = new Response();
+            if (len == 0)
+            {
+                response.Data = obj;
+                response.StatusCode = 404;
+                response.Message = "Not Found";
+                return response;
+            }
+            if (obj != null)
+            {
+                _dbContext.Remove(obj);
+                _dbContext.SaveChanges();
+                if (len == 1)
+                {
+                    response.Data = obj;
+                    response.StatusCode = 200;
+                    response.Message = "User deleted";
+                }
+            }
+            return response;
+
+        }
+
     }
 }

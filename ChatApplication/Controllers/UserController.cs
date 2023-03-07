@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ChatApplication.Controllers
 {
@@ -51,6 +52,14 @@ namespace ChatApplication.Controllers
         {
             IUserService service = new UserService(_dbContext,_configuration);
             var res = service.UpdateUser(UserId,update);
+            return Ok(res);
+        }
+
+        [HttpDelete]
+        public IActionResult DeleteUser(Guid UserId)
+        {
+            IUserService service = new UserService(_dbContext, _configuration);
+            var res = service.DeleteUser(UserId);
             return Ok(res);
         }
     }
