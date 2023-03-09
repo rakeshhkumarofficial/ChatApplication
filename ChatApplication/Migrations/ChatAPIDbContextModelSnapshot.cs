@@ -35,9 +35,8 @@ namespace ChatApplication.Migrations
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OneTimePass")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("OneTimePass")
+                        .HasColumnType("int");
 
                     b.Property<string>("ResetPasswordToken")
                         .IsRequired()

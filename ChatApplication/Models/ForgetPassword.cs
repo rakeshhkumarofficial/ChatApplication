@@ -9,7 +9,7 @@ namespace ChatApplication.Models
         [EmailAddress]
         public string Email { get; set; }
         public string ResetPasswordToken { get; set; }
-        public string OneTimePass { get; set; }    
+        public int OneTimePass { get; set; }    
         public DateTime ExpiresAt { get; set; }
     }
 }

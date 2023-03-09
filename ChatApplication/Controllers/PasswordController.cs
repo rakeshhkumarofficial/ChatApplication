@@ -16,6 +16,7 @@ using static System.Net.WebRequestMethods;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApplication.Controllers
 {
@@ -51,15 +52,17 @@ namespace ChatApplication.Controllers
                 p.Id = Guid.NewGuid();
                 p.Email = email;
                 p.ResetPasswordToken = CreateToken(user, _configuration);
-                p.OneTimePass = otp.ToString();
+                p.OneTimePass = otp;
                 p.ExpiresAt = DateTime.Now.AddDays(1);
                 _dbContext.ForgetPasswords.Add(p);
                 _dbContext.SaveChanges();
+
                 MailMessage message = new MailMessage();
                 message.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
                 message.To.Add(new MailAddress(email));
                 message.Subject = "Reset your Password";
-                message.Body = $"Your One Time Password is : {p.OneTimePass} \n" + "http://localhost:4200/verify";
+                message.Body = $"Your One Time Password is : {p.OneTimePass} \n" + "http://192.180.0.29:41485/verify";
+
                 SmtpClient Newclient = new SmtpClient();
                 Newclient.Credentials = new NetworkCredential("rakesh.kumar23@chicmic.co.in", "Chicmic@2022");
                 Newclient.Host = "mail.chicmic.co.in";
@@ -67,18 +70,24 @@ namespace ChatApplication.Controllers
                 Newclient.EnableSsl = true;
                 Newclient.Send(message);
 
-                return Ok("Verification mail is sent");
+                Response res = new Response();
+                res.Data = p.ResetPasswordToken;
+                res.StatusCode = 200;
+                res.Message = "Verification Mail is Sent";
+                return Ok(res);
             }
 
-            var fuser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == email);
-            fuser.OneTimePass = otp.ToString();
+            var fpuser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == email);
+            fpuser.OneTimePass = otp;
+            fpuser.ResetPasswordToken = CreateToken(user, _configuration);
+            fpuser.ExpiresAt = DateTime.Now.AddDays(1);
             _dbContext.SaveChanges();
 
             MailMessage msg = new MailMessage();
             msg.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
             msg.To.Add(new MailAddress(email));
             msg.Subject = "Reset your Password";
-            msg.Body = $"Your One Time Password is : {fuser.OneTimePass} \n" + "http://localhost:4200/verify";
+            msg.Body = $"Your One Time Password is : {fpuser.OneTimePass} \n" + "http://192.180.0.29:41485/verify";
             
             SmtpClient client = new SmtpClient();
             client.Credentials = new NetworkCredential("rakesh.kumar23@chicmic.co.in", "Chicmic@2022");
@@ -86,63 +95,51 @@ namespace ChatApplication.Controllers
             client.Port = 587;
             client.EnableSsl = true;
             client.Send(msg);
-            return Ok("Verification mail is sent");
+
+            Response response = new Response();
+            response.Data = fpuser.ResetPasswordToken;
+            response.StatusCode = 200;
+            response.Message = "Verification Mail is Sent";
+            return Ok(response);
+
+
+
         }
 
         [HttpPost,Authorize]
         public IActionResult ResetPassword(ResetPassword reset)
         {
-            if(reset.NewPassword != reset.ConfirmPassword)
-            {
-                return BadRequest("Confirm Password does not match with the New Password");
-            }
-            
-            var user = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == reset.Email);  
-          
-            var resuser = _dbContext.Users.FirstOrDefault(x => x.Email == user.Email);
-            if (user == null || user.ExpiresAt < DateTime.Now)
-            {
-                return BadRequest("Invalid Email");
-            }
-            CreatePasswordHash(reset.NewPassword, out byte[] PasswordHash, out byte[] PasswordSalt);
-            resuser.PasswordHash = PasswordHash;
-            resuser.PasswordSalt = PasswordSalt;
-            _dbContext.SaveChanges();
+            var user = HttpContext.User;
+            var email = user.FindFirst(ClaimTypes.Name)?.Value;
+            var dbuser = _dbContext.Users.FirstOrDefault(x => x.Email == email);
+            var fpUser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == dbuser.Email);
 
-            Response res = new Response();
-            res.Data = resuser; 
-            res.StatusCode = 200;
-            res.Message = "Password Reset Successfully";
-            _dbContext.Remove(user);
-            _dbContext.SaveChanges();
-
-            return Ok(res);
-        }
-
-        [HttpPost]
-        public  IActionResult VerifyMail(string email,string OneTimePassword)
-        {
-            var user = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == email);
-            if (user == null)
+            if (fpUser == null || fpUser.ExpiresAt < DateTime.Now)
             {
-                return BadRequest("Invalid email");
+                return BadRequest("Token Expired");
             }
-            if(user.OneTimePass != OneTimePassword)
+            if (fpUser.OneTimePass != reset.OneTimePassword)
             {
                 return BadRequest("Invalid OTP");
             }
-
-            if (user == null || user.ExpiresAt < DateTime.Now)
+            if (reset.NewPassword != reset.ConfirmPassword)
             {
-                return BadRequest("OTP is Expired..");
-            }
-            Response res = new Response();
-            res.Data = user.ResetPasswordToken;
-            res.StatusCode = 200;
-            res.Message = "Email is Verified";
-            return Ok(res);
+                return BadRequest("Confirm Password does not match with the New Password");
+            }     
+            
+            CreatePasswordHash(reset.NewPassword, out byte[] PasswordHash, out byte[] PasswordSalt);
+            dbuser.PasswordHash = PasswordHash;
+            dbuser.PasswordSalt = PasswordSalt;
+            _dbContext.SaveChanges();
 
-        }
+            Response res = new Response();
+            res.Data = dbuser;
+            res.StatusCode = 200;
+            res.Message = "Password Reset Successfully";
+            _dbContext.Remove(fpUser);
+            _dbContext.SaveChanges();
+            return Ok(res);
+        }      
         private string CreateToken(User obj, IConfiguration _configuration)
         {
             List<Claim> claims = new List<Claim>
