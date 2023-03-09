@@ -37,6 +37,7 @@ namespace ChatApplication.Controllers
         public IActionResult ForgetPassword(string email)
         {
             var user = _dbContext.Users.FirstOrDefault(x => x.Email == email);
+            bool IsUserExists = _dbContext.ForgetPasswords.Where(u => u.Email == email).Any();
             if (user == null)
             {
                 return BadRequest("user not found");
@@ -44,29 +45,48 @@ namespace ChatApplication.Controllers
             //Generate One Time Password
             Random random = new Random();
             int otp = random.Next(100000, 999999);
+            
+            if (!IsUserExists)
+            {
+                ForgetPassword p = new ForgetPassword();
+                p.Id = Guid.NewGuid();
+                p.Email = email;
+                p.ResetPasswordToken = CreateToken(user, _configuration);
+                p.OneTimePass = otp;
+                p.ExpiresAt = DateTime.Now.AddDays(1);
+                _dbContext.ForgetPasswords.Add(p);
+                _dbContext.SaveChanges();
+                MailMessage message = new MailMessage();
+                message.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
+                message.To.Add(new MailAddress(email));
+                message.Subject = "Reset your Password";
+                message.Body = $"Your One Time Password is : {p.OneTimePass} \n" + "http://localhost:4200/verify";
+                SmtpClient Newclient = new SmtpClient();
+                Newclient.Credentials = new NetworkCredential("rakesh.kumar23@chicmic.co.in", "Chicmic@2022");
+                Newclient.Host = "mail.chicmic.co.in";
+                Newclient.Port = 587;
+                Newclient.EnableSsl = true;
+                Newclient.Send(message);
 
-            ForgetPassword p = new ForgetPassword();
-            p.Id = Guid.NewGuid();
-            p.Email = email ;
-            p.ResetPasswordToken = CreateToken(user,_configuration);
-            p.OneTimePass = otp;
-            p.ExpiresAt = DateTime.Now.AddDays(1);
-            _dbContext.ForgetPasswords.Add(p);
-            _dbContext.SaveChanges();                     
+                return Ok("Verification mail is sent");
+            }
 
-            MailMessage message = new MailMessage();
-            message.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
-            message.To.Add(new MailAddress(email));
-            message.Subject = "Reset your Password";
-            message.Body = $"Your One Time Password is : {p.OneTimePass} \n" + "http://localhost:4200/verify";
+            var fuser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == email);
+            fuser.OneTimePass = otp;
+            _dbContext.SaveChanges();
 
+            MailMessage msg = new MailMessage();
+            msg.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
+            msg.To.Add(new MailAddress(email));
+            msg.Subject = "Reset your Password";
+            msg.Body = $"Your One Time Password is : {fuser.OneTimePass} \n" + "http://localhost:4200/verify";
+            
             SmtpClient client = new SmtpClient();
             client.Credentials = new NetworkCredential("rakesh.kumar23@chicmic.co.in", "Chicmic@2022");
             client.Host = "mail.chicmic.co.in";
             client.Port = 587;
             client.EnableSsl = true;
-            client.Send(message);
-
+            client.Send(msg);
             return Ok("Verification mail is sent");
         }
 
