@@ -19,21 +19,20 @@ using System.Security.Claims;
 
 namespace ChatApplication.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[Action]")]
     [ApiController]
     public class PasswordController : ControllerBase
     {
         private readonly ChatAPIDbContext _dbContext;
-        public readonly IConfiguration _configuration;
-    
+        public readonly IConfiguration _configuration; 
         public PasswordController(ChatAPIDbContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _configuration = configuration;
             
         }
+
         [HttpPost]
-        [Route("Forget-Password")]
         public IActionResult ForgetPassword(string email)
         {
             var user = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -52,7 +51,7 @@ namespace ChatApplication.Controllers
                 p.Id = Guid.NewGuid();
                 p.Email = email;
                 p.ResetPasswordToken = CreateToken(user, _configuration);
-                p.OneTimePass = otp;
+                p.OneTimePass = otp.ToString();
                 p.ExpiresAt = DateTime.Now.AddDays(1);
                 _dbContext.ForgetPasswords.Add(p);
                 _dbContext.SaveChanges();
@@ -72,7 +71,7 @@ namespace ChatApplication.Controllers
             }
 
             var fuser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == email);
-            fuser.OneTimePass = otp;
+            fuser.OneTimePass = otp.ToString();
             _dbContext.SaveChanges();
 
             MailMessage msg = new MailMessage();
@@ -90,9 +89,7 @@ namespace ChatApplication.Controllers
             return Ok("Verification mail is sent");
         }
 
-        [HttpPost]
-        [Authorize]
-        [Route("Reset-Password")]
+        [HttpPost,Authorize]
         public IActionResult ResetPassword(ResetPassword reset)
         {
             if(reset.NewPassword != reset.ConfirmPassword)
@@ -123,8 +120,7 @@ namespace ChatApplication.Controllers
         }
 
         [HttpPost]
-        [Route("Verify-Mail")]
-        public  IActionResult VerifyMail(string email,int OneTimePassword)
+        public  IActionResult VerifyMail(string email,string OneTimePassword)
         {
             var user = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == email);
             if (user == null)
@@ -147,8 +143,6 @@ namespace ChatApplication.Controllers
             return Ok(res);
 
         }
-
-
         private string CreateToken(User obj, IConfiguration _configuration)
         {
             List<Claim> claims = new List<Claim>
@@ -174,15 +168,6 @@ namespace ChatApplication.Controllers
             }
         }
 
-
     }
-
-
-
-  
-
-
-
-
 
 }

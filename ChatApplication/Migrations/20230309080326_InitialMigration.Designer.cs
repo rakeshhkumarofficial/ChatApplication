@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChatApplication.Migrations
 {
     [DbContext(typeof(ChatAPIDbContext))]
-    [Migration("20230307124148_InitialMigration")]
+    [Migration("20230309080326_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -38,8 +38,9 @@ namespace ChatApplication.Migrations
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("OneTimePass")
-                        .HasColumnType("int");
+                    b.Property<string>("OneTimePass")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ResetPasswordToken")
                         .IsRequired()

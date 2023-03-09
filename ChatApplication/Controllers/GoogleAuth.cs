@@ -18,14 +18,12 @@ namespace ChatApplication.Controllers
     {
         private readonly ChatAPIDbContext _dbContext;
         public readonly IConfiguration _configuration;
-
         public GoogleAuth(ChatAPIDbContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _configuration = configuration;
 
         }
-
 
         [HttpPost]
         public async Task<IActionResult> SignIn(string Token)
