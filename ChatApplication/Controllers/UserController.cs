@@ -63,7 +63,7 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
-        [HttpPost]
+        [HttpPost,Authorize]
         public IActionResult FileUpload([FromForm] FileUpload upload, Guid UserId)
         {
 
