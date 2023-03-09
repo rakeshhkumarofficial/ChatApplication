@@ -40,22 +40,24 @@ namespace ChatApplication.Controllers
             return Ok(token);
         }
 
-        [HttpGet, Authorize]
+        [HttpGet, Authorize(Roles ="Login")]
         public IActionResult GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records)
         {
             IUserService service = new UserService(_dbContext, _configuration);
             var res = service.GetUser(UserId, FirstName,LastName, Phone,sort, pageNumber, records);
             return Ok(res);
         }
-        [HttpPost,Authorize]
-        public IActionResult UpdateUser(Guid UserId, UpdateUser update)
+        [HttpPost, Authorize(Roles = "Login")]
+        public IActionResult UpdateUser(UpdateUser update)
         {
+            var user = HttpContext.User;
+            var email = user.FindFirst(ClaimTypes.Name)?.Value;
             IUserService service = new UserService(_dbContext,_configuration);
-            var res = service.UpdateUser(UserId,update);
+            var res = service.UpdateUser(update,email);
             return Ok(res);
         }
 
-        [HttpDelete,Authorize]
+        [HttpDelete, Authorize(Roles = "Login")]
         public IActionResult DeleteUser(Guid UserId)
         {
             IUserService service = new UserService(_dbContext, _configuration);
@@ -63,12 +65,23 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
-        [HttpPost,Authorize]
-        public IActionResult FileUpload([FromForm] FileUpload upload, Guid UserId)
+        [HttpPost, Authorize(Roles = "Login")]
+        public IActionResult FileUpload([FromForm] FileUpload upload)
         {
-
+            var user = HttpContext.User;
+            var email = user.FindFirst(ClaimTypes.Name)?.Value;
             IUserService service = new UserService(_dbContext, _configuration);
-            var res = service.UploadProfileImage(upload,UserId);
+            var res = service.UploadProfileImage(upload,email);
+            return Ok(res);
+        }
+
+        [HttpPost, Authorize(Roles = "Login")]
+        public IActionResult ChangePassword(ChangePassword pass)
+        {
+            var user = HttpContext.User;
+            var email = user.FindFirst(ClaimTypes.Name)?.Value;
+            IUserService service = new UserService(_dbContext, _configuration);
+            var res = service.ChangePassword(pass,email);
             return Ok(res);
         }
     }

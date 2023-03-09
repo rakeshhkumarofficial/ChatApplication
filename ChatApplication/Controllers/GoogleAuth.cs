@@ -26,9 +26,11 @@ namespace ChatApplication.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SignIn(string Token)
+        public async Task<IActionResult> SignIn()
         {
-            var googleUser = await GoogleJsonWebSignature.ValidateAsync(Token);
+            var user1 = HttpContext.User;
+            var email = user1.FindFirst(ClaimTypes.Name)?.Value;
+            var googleUser = await GoogleJsonWebSignature.ValidateAsync(email);
             bool IsUserExists = _dbContext.Users.Where(u => u.Email == googleUser.Email).Any();
             if (!IsUserExists)
             {

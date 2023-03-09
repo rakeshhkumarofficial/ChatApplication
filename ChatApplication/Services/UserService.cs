@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -111,7 +112,9 @@ namespace ChatApplication.Services
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name,obj.Email)
+                new Claim(ClaimTypes.Name,obj.Email),
+                new Claim(ClaimTypes.Role,"Login")
+
            };
             var Key = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
             var creds = new SigningCredentials(Key, SecurityAlgorithms.HmacSha512Signature);
@@ -191,9 +194,9 @@ namespace ChatApplication.Services
         }
 
         // Update User
-        public Response UpdateUser(Guid UserId, UpdateUser update)
+        public Response UpdateUser(UpdateUser update,string email)
         {
-            var obj = _dbContext.Users.Find(UserId);
+            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
             int len = obj == null ? 0 : 1;
             Response res = new Response();
             if (len == 0)
@@ -247,16 +250,16 @@ namespace ChatApplication.Services
         }
 
         //Image Upload
-        public Response UploadProfileImage(FileUpload upload, Guid UserId)
+        public Response UploadProfileImage(FileUpload upload, string email)
         {
-            var obj = _dbContext.Users.Find(UserId);
+            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
             int len = obj == null ? 0 : 1;
             Response response = new Response();
             if (len == 0)
             {
                 response.Data = obj;
                 response.StatusCode = 404;
-                response.Message = "Not Found";
+                response.Message = "User Not Found";
                 return response;
             }
             string folder = "wwwroot/Images/";
@@ -271,6 +274,42 @@ namespace ChatApplication.Services
             return response;
 
         }
+        public Response ChangePassword(ChangePassword pass, string email)
+        {
+            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
+            int len = obj == null ? 0 : 1;
+            Response response = new Response();
+            if (len == 0)
+            {
+                response.Data = obj;
+                response.StatusCode = 404;
+                response.Message = "User Not Found";
+                return response;
+            }
+            if (!VerifyPasswordHash(pass.OldPassword, obj.PasswordHash, obj.PasswordSalt))
+            {
+                response.Data = null;
+                response.StatusCode = 404;
+                response.Message = "OldPassword is Wrong";
+                return response;
+            }
 
+            if (pass.NewPassword != pass.ConfirmPassword)
+            {
+                response.Data = null;
+                response.StatusCode = 404;
+                response.Message = "ConfirmPassword doesn't match the New password";
+                return response;
+            }
+            CreatePasswordHash(pass.ConfirmPassword, out byte[] PasswordHash, out byte[] PasswordSalt);
+            obj.PasswordHash = PasswordHash;
+            obj.PasswordSalt = PasswordSalt;
+            _dbContext.SaveChanges();
+            
+            response.Data = obj;
+            response.StatusCode = 200;
+            response.Message = "Password Changed Successfully";
+            return response;
+        }
     }
 }

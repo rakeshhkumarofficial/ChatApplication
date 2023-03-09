@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace ChatApplication.Controllers
 {
@@ -34,10 +35,10 @@ namespace ChatApplication.Controllers
         }
 
         [HttpPost]
-        public IActionResult ForgetPassword(string email)
+        public IActionResult ForgetPassword(ForgetPasswordRequest fp)
         {
-            var user = _dbContext.Users.FirstOrDefault(x => x.Email == email);
-            bool IsUserExists = _dbContext.ForgetPasswords.Where(u => u.Email == email).Any();
+            var user = _dbContext.Users.FirstOrDefault(x => x.Email == fp.Email);
+            bool IsUserExists = _dbContext.ForgetPasswords.Where(u => u.Email == fp.Email).Any();
             if (user == null)
             {
                 return BadRequest("user not found");
@@ -50,7 +51,7 @@ namespace ChatApplication.Controllers
             {
                 ForgetPassword p = new ForgetPassword();
                 p.Id = Guid.NewGuid();
-                p.Email = email;
+                p.Email = fp.Email;
                 p.ResetPasswordToken = CreateToken(user, _configuration);
                 p.OneTimePass = otp;
                 p.ExpiresAt = DateTime.Now.AddDays(1);
@@ -59,7 +60,7 @@ namespace ChatApplication.Controllers
 
                 MailMessage message = new MailMessage();
                 message.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
-                message.To.Add(new MailAddress(email));
+                message.To.Add(new MailAddress(fp.Email));
                 message.Subject = "Reset your Password";
                 message.Body = $"Your One Time Password is : {p.OneTimePass} \n" + "http://192.180.0.29:41485/verify";
 
@@ -71,13 +72,13 @@ namespace ChatApplication.Controllers
                 Newclient.Send(message);
 
                 Response res = new Response();
-                res.Data = p.ResetPasswordToken;
+                res.Data = p.Email;
                 res.StatusCode = 200;
                 res.Message = "Verification Mail is Sent";
                 return Ok(res);
             }
 
-            var fpuser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == email);
+            var fpuser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == fp.Email);
             fpuser.OneTimePass = otp;
             fpuser.ResetPasswordToken = CreateToken(user, _configuration);
             fpuser.ExpiresAt = DateTime.Now.AddDays(1);
@@ -85,7 +86,7 @@ namespace ChatApplication.Controllers
 
             MailMessage msg = new MailMessage();
             msg.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
-            msg.To.Add(new MailAddress(email));
+            msg.To.Add(new MailAddress(fp.Email));
             msg.Subject = "Reset your Password";
             msg.Body = $"Your One Time Password is : {fpuser.OneTimePass} \n" + "http://192.180.0.29:41485/verify";
             
@@ -106,7 +107,7 @@ namespace ChatApplication.Controllers
 
         }
 
-        [HttpPost,Authorize]
+        [HttpPost,Authorize(Roles = "Reset")]
         public IActionResult ResetPassword(ResetPassword reset)
         {
             var user = HttpContext.User;
@@ -118,10 +119,7 @@ namespace ChatApplication.Controllers
             {
                 return BadRequest("Token Expired");
             }
-            if (fpUser.OneTimePass != reset.OneTimePassword)
-            {
-                return BadRequest("Invalid OTP");
-            }
+        
             if (reset.NewPassword != reset.ConfirmPassword)
             {
                 return BadRequest("Confirm Password does not match with the New Password");
@@ -139,12 +137,40 @@ namespace ChatApplication.Controllers
             _dbContext.Remove(fpUser);
             _dbContext.SaveChanges();
             return Ok(res);
-        }      
+        }
+
+        [HttpPost]
+        public IActionResult VerfiyMail(VerfiyOTP otp)
+        {          
+            var fpUser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.OneTimePass == otp.OneTimePassword);
+            if(fpUser == null)
+            {
+                return NotFound("Wrong OTP");
+            }
+            if (fpUser.OneTimePass != otp.OneTimePassword)
+            {
+                return BadRequest("Invalid OTP");
+            }
+
+            var dbuser = _dbContext.Users.FirstOrDefault(x => x.Email == fpUser.Email);
+            
+           
+
+            Response res = new Response();
+            res.Data = fpUser.ResetPasswordToken;
+            res.StatusCode = 200;
+            res.Message = "Mail Verified Successfully";
+            fpUser.OneTimePass = 0 ;
+            _dbContext.SaveChanges();
+            return Ok(res);
+        }
+
         private string CreateToken(User obj, IConfiguration _configuration)
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name,obj.Email)
+                new Claim(ClaimTypes.Name,obj.Email),
+                new Claim(ClaimTypes.Role,"Reset")
            };
             var Key = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
             var creds = new SigningCredentials(Key, SecurityAlgorithms.HmacSha512Signature);
@@ -166,5 +192,4 @@ namespace ChatApplication.Controllers
         }
 
     }
-
 }
