@@ -3,6 +3,7 @@ using ChatApplication.Models;
 using ChatApplication.Services;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -31,17 +32,37 @@ namespace ChatApplication.Controllers
         public async Task<IActionResult> SignIn(string Token)
         {
             var googleUser = await GoogleJsonWebSignature.ValidateAsync(Token);
-            var user = new GoogleUser();
-            user.Email = googleUser.Email;
-            user.Password = null;
-            string token = CreateToken(user, _configuration);
-            var response = new Response();
+            bool IsUserExists = _dbContext.Users.Where(u => u.Email == googleUser.Email).Any();
+            if (!IsUserExists)
+            {
+                var user = new User()
+                {
+                    UserId = Guid.NewGuid(),
+                    FirstName = googleUser.Name,
+                    LastName = googleUser.FamilyName,
+                    Email = googleUser.Email,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+                _dbContext.Users.Add(user);
+                _dbContext.SaveChanges();
+            
+            string Newtoken = CreateToken(user, _configuration);
+            Response response = new Response();
             response.StatusCode = 200;
             response.Message = "Token";
-            response.Data = token;
+            response.Data = Newtoken;
             return Ok(response);
+            }
+            var ExistingUser = _dbContext.Users.Where(u => u.Email == googleUser.Email).FirstOrDefault();
+            string token = CreateToken(ExistingUser, _configuration);
+            Response res = new Response();
+            res.StatusCode = 200;
+            res.Message = "Token";
+            res.Data = token;
+            return Ok(res);
         }
-        private string CreateToken(GoogleUser obj, IConfiguration _configuration)
+        private string CreateToken(User obj, IConfiguration _configuration)
         {
             List<Claim> claims = new List<Claim>
             {
