@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace ChatApplication.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[Action]")]
     [ApiController]
     public class GoogleAuth : ControllerBase
     {
@@ -28,7 +28,6 @@ namespace ChatApplication.Controllers
 
 
         [HttpPost]
-        [Route("GoogleAuth")]
         public async Task<IActionResult> SignIn(string Token)
         {
             var googleUser = await GoogleJsonWebSignature.ValidateAsync(Token);
