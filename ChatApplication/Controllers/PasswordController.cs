@@ -58,7 +58,7 @@ namespace ChatApplication.Controllers
             message.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
             message.To.Add(new MailAddress(email));
             message.Subject = "Reset your Password";
-            message.Body = $"Your One Time Password is : {p.OneTimePass} \n" + "https://localhost:7293/api/Password/Verify-Mail";
+            message.Body = $"Your One Time Password is : {p.OneTimePass} \n" + "http://localhost:4200/verify";
 
             SmtpClient client = new SmtpClient();
             client.Credentials = new NetworkCredential("rakesh.kumar23@chicmic.co.in", "Chicmic@2022");

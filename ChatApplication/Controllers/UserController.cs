@@ -62,5 +62,14 @@ namespace ChatApplication.Controllers
             var res = service.DeleteUser(UserId);
             return Ok(res);
         }
+
+        [HttpPost]
+        public IActionResult FileUpload([FromForm] FileUpload upload, Guid UserId)
+        {
+
+            IUserService service = new UserService(_dbContext, _configuration);
+            var res = service.UploadProfileImage(upload,UserId);
+            return Ok(res);
+        }
     }
 }
