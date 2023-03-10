@@ -18,6 +18,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using Newtonsoft.Json.Linq;
 
 namespace ChatApplication.Controllers
 {
@@ -39,30 +40,42 @@ namespace ChatApplication.Controllers
         {
             var user = _dbContext.Users.FirstOrDefault(x => x.Email == fp.Email);
             bool IsUserExists = _dbContext.ForgetPasswords.Where(u => u.Email == fp.Email).Any();
+            Response res = new Response();
             if (user == null)
             {
-                return BadRequest("user not found");
-            }
-            //Generate One Time Password
-            Random random = new Random();
-            int otp = random.Next(100000, 999999);
-            
+                res.StatusCode = 404;
+                res.Message = "Email Not found";
+                res.Data = null;
+                return Ok(res);
+            }         
+            string urldirect = "http://192.180.0.29:4200/resetpassword/";
+            UriBuilder builder = new UriBuilder(urldirect);
+
             if (!IsUserExists)
             {
                 ForgetPassword p = new ForgetPassword();
                 p.Id = Guid.NewGuid();
                 p.Email = fp.Email;
                 p.ResetPasswordToken = CreateToken(user, _configuration);
-                p.OneTimePass = otp;
                 p.ExpiresAt = DateTime.Now.AddDays(1);
                 _dbContext.ForgetPasswords.Add(p);
                 _dbContext.SaveChanges();
+                
+
+                // Encode the JWT token as a URL-safe string
+                string encodedToken = System.Net.WebUtility.UrlEncode(p.ResetPasswordToken);
+
+                // Add the encoded JWT token as a query string parameter
+                builder.Query = "token=" + encodedToken;
+
+                // Get the modified link as a string
+                string modifiedLink = builder.ToString();
 
                 MailMessage message = new MailMessage();
                 message.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
                 message.To.Add(new MailAddress(fp.Email));
                 message.Subject = "Reset your Password";
-                message.Body = $"Your One Time Password is : {p.OneTimePass} \n" + "http://192.180.0.29:41485/verify";
+                message.Body = $"link on the below link to verify and then reset your passoword \n" + modifiedLink;
 
                 SmtpClient Newclient = new SmtpClient();
                 Newclient.Credentials = new NetworkCredential("rakesh.kumar23@chicmic.co.in", "Chicmic@2022");
@@ -70,8 +83,7 @@ namespace ChatApplication.Controllers
                 Newclient.Port = 587;
                 Newclient.EnableSsl = true;
                 Newclient.Send(message);
-
-                Response res = new Response();
+              
                 res.Data = p.Email;
                 res.StatusCode = 200;
                 res.Message = "Verification Mail is Sent";
@@ -79,16 +91,24 @@ namespace ChatApplication.Controllers
             }
 
             var fpuser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.Email == fp.Email);
-            fpuser.OneTimePass = otp;
             fpuser.ResetPasswordToken = CreateToken(user, _configuration);
             fpuser.ExpiresAt = DateTime.Now.AddDays(1);
             _dbContext.SaveChanges();
+
+            // Encode the JWT token as a URL-safe string
+            string encodedtoken = System.Net.WebUtility.UrlEncode(fpuser.ResetPasswordToken);
+
+            // Add the encoded JWT token as a query string parameter
+            builder.Query = "token=" + encodedtoken;
+
+            // Get the modified link as a string
+            string modifiedlink = builder.ToString();
 
             MailMessage msg = new MailMessage();
             msg.From = new MailAddress("rakesh.kumar23@chicmic.co.in");
             msg.To.Add(new MailAddress(fp.Email));
             msg.Subject = "Reset your Password";
-            msg.Body = $"Your One Time Password is : {fpuser.OneTimePass} \n" + "http://192.180.0.29:41485/verify";
+            msg.Body = $"Link on the below link to verify and then reset your passoword \n" + modifiedlink;
             
             SmtpClient client = new SmtpClient();
             client.Credentials = new NetworkCredential("rakesh.kumar23@chicmic.co.in", "Chicmic@2022");
@@ -97,14 +117,10 @@ namespace ChatApplication.Controllers
             client.EnableSsl = true;
             client.Send(msg);
 
-            Response response = new Response();
-            response.Data = fpuser.ResetPasswordToken;
-            response.StatusCode = 200;
-            response.Message = "Verification Mail is Sent";
-            return Ok(response);
-
-
-
+            res.Data = fpuser.Email;
+            res.StatusCode = 200;
+            res.Message = "Verification Mail is Sent";
+            return Ok(res);
         }
 
         [HttpPost,Authorize(Roles = "Reset")]
@@ -117,7 +133,7 @@ namespace ChatApplication.Controllers
 
             if (fpUser == null || fpUser.ExpiresAt < DateTime.Now)
             {
-                return BadRequest("Token Expired");
+                return BadRequest("Link Expired");
             }
         
             if (reset.NewPassword != reset.ConfirmPassword)
@@ -128,6 +144,7 @@ namespace ChatApplication.Controllers
             CreatePasswordHash(reset.NewPassword, out byte[] PasswordHash, out byte[] PasswordSalt);
             dbuser.PasswordHash = PasswordHash;
             dbuser.PasswordSalt = PasswordSalt;
+            dbuser.UpdatedAt = DateTime.Now;
             _dbContext.SaveChanges();
 
             Response res = new Response();
@@ -138,33 +155,6 @@ namespace ChatApplication.Controllers
             _dbContext.SaveChanges();
             return Ok(res);
         }
-
-        [HttpPost]
-        public IActionResult VerfiyMail(VerfiyOTP otp)
-        {          
-            var fpUser = _dbContext.ForgetPasswords.FirstOrDefault(x => x.OneTimePass == otp.OneTimePassword);
-            if(fpUser == null)
-            {
-                return NotFound("Wrong OTP");
-            }
-            if (fpUser.OneTimePass != otp.OneTimePassword)
-            {
-                return BadRequest("Invalid OTP");
-            }
-
-            var dbuser = _dbContext.Users.FirstOrDefault(x => x.Email == fpUser.Email);
-            
-           
-
-            Response res = new Response();
-            res.Data = fpUser.ResetPasswordToken;
-            res.StatusCode = 200;
-            res.Message = "Mail Verified Successfully";
-            fpUser.OneTimePass = 0 ;
-            _dbContext.SaveChanges();
-            return Ok(res);
-        }
-
         private string CreateToken(User obj, IConfiguration _configuration)
         {
             List<Claim> claims = new List<Claim>
@@ -190,6 +180,5 @@ namespace ChatApplication.Controllers
                 PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Password));
             }
         }
-
     }
 }

@@ -26,46 +26,56 @@ namespace ChatApplication.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SignIn()
+        public async Task<IActionResult> SignIn(string Token)
         {
-            var user1 = HttpContext.User;
-            var email = user1.FindFirst(ClaimTypes.Name)?.Value;
-            var googleUser = await GoogleJsonWebSignature.ValidateAsync(email);
+            var googleUser = await GoogleJsonWebSignature.ValidateAsync(Token);
             bool IsUserExists = _dbContext.Users.Where(u => u.Email == googleUser.Email).Any();
+            DataModel model = new DataModel();
             if (!IsUserExists)
             {
                 var user = new User()
                 {
                     UserId = Guid.NewGuid(),
-                    FirstName = googleUser.Name,
+                    FirstName = googleUser.GivenName,
                     LastName = googleUser.FamilyName,
+                    PasswordHash = null,
+                    PasswordSalt = null,
                     Email = googleUser.Email,
+                    PathToProfilePic = null,
+                    DateOfBirth = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                 };
                 _dbContext.Users.Add(user);
                 _dbContext.SaveChanges();
             
-            string Newtoken = CreateToken(user, _configuration);
-            Response response = new Response();
-            response.StatusCode = 200;
-            response.Message = "Token";
-            response.Data = Newtoken;
-            return Ok(response);
+                string Newtoken = CreateToken(user, _configuration);
+                Response response = new Response();
+                response.StatusCode = 200;
+                response.Message = "Login Successfull";
+                
+                model.Email = googleUser.Email;
+                model.Token = Newtoken;
+                response.Data = model;
+                return Ok(response);
             }
             var ExistingUser = _dbContext.Users.Where(u => u.Email == googleUser.Email).FirstOrDefault();
             string token = CreateToken(ExistingUser, _configuration);
             Response res = new Response();
             res.StatusCode = 200;
-            res.Message = "Token";
-            res.Data = token;
+            res.Message = "Login Successfull";
+            model.Email = googleUser.Email;
+            model.Token = token;
+            res.Data = model;
             return Ok(res);
         }
         private string CreateToken(User obj, IConfiguration _configuration)
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name,obj.Email)
+                new Claim(ClaimTypes.Name,obj.Email),
+                 new Claim(ClaimTypes.Role,"Login")
+
            };
             var Key = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
             var creds = new SigningCredentials(Key, SecurityAlgorithms.HmacSha512Signature);

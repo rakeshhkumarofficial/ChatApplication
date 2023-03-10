@@ -18,7 +18,6 @@ namespace ChatApplication.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ResetPasswordToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OneTimePass = table.Column<int>(type: "int", nullable: false),
                     ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>

@@ -27,6 +27,7 @@ namespace ChatApplication.Controllers
         [HttpPost]
         public IActionResult Register(Register user)
         {
+            
             IUserService service = new UserService(_dbContext,_configuration);
             var res = service.AddUser(user);
             return Ok(res);

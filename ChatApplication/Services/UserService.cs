@@ -1,4 +1,5 @@
-﻿using ChatApplication.Data;
+﻿using Azure;
+using ChatApplication.Data;
 using ChatApplication.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -10,7 +11,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
+using Response = ChatApplication.Models.Response;
 
 namespace ChatApplication.Services
 {
@@ -18,17 +21,66 @@ namespace ChatApplication.Services
     {
         private readonly ChatAPIDbContext _dbContext;
         private readonly IConfiguration _configuration;
-
         public UserService(ChatAPIDbContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _configuration = configuration;
         }
-
-        // Register User
         public Response AddUser(Register user)
         {
-            bool IsUserExists = _dbContext.Users.Where(u=>u.Email == user.Email).Any();
+            Response response = new Response();
+            if (user.FirstName == null) {
+                response.StatusCode = 400;
+                response.Message = "FirstName cannot be empty";
+                response.Data = null;
+                return response;
+            }
+            if (user.LastName == null)
+            {
+                response.StatusCode = 400;
+                response.Message = "LastName cannot be empty";
+                response.Data = null;
+                return response;
+            }
+            
+            TimeSpan ageTimeSpan = DateTime.Now - user.DateOfBirth;
+            int age = (int)(ageTimeSpan.Days / 365.25);                 
+            if (age < 12)
+            {
+                response.StatusCode = 400;
+                response.Message = "You should be atleast 12 years old";
+                response.Data = null;
+                return response;
+            }
+            
+            string regexPatternEmail = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
+            if (!Regex.IsMatch(user.Email, regexPatternEmail))
+            {
+                response.StatusCode = 400;
+                response.Message = "Enter Valid email";
+                response.Data = null;
+                return response;
+            }
+            
+            string regexPatternPassword = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
+            if (!Regex.IsMatch(user.Password, regexPatternPassword))
+            {
+                response.StatusCode = 400;
+                response.Message = "Enter Valid Password";
+                response.Data = null;
+                return response;
+            }
+            
+            string regexPatternPhone = "^[6-9]\\d{9}$";
+            if (!Regex.IsMatch(user.Phone.ToString(), regexPatternPhone))
+            {
+                response.StatusCode = 400;
+                response.Message = "Enter Valid Phone Number";
+                response.Data = null;
+                return response;
+            }
+            
+            bool IsUserExists = _dbContext.Users.Where(u=>u.Email == user.Email).Any();         
             if (!IsUserExists)
             {
                 CreatePasswordHash(user.Password, out byte[] PasswordHash, out byte[] PasswordSalt);
@@ -43,35 +95,35 @@ namespace ChatApplication.Services
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     Phone = user.Phone,
-                    DateOfBirth = user.DateOfBirth,
-                };
-                _dbContext.Users.Add(obj);
-                _dbContext.SaveChanges();
-                string token = CreateToken(obj, _configuration);
-                int len = obj == null ? 0 : 1;
-                Response response = new Response();
-                if (len == 0)
-                {
-                    response.Data = obj;
+                    DateOfBirth = DateTime.Parse(user.DateOfBirth.ToString("yyyy-MM-dd"))
+                 };
+                 _dbContext.Users.Add(obj);
+                 _dbContext.SaveChanges();
+                 string token = CreateToken(obj, _configuration);
+                 int len = obj == null ? 0 : 1;
+                
+                 if (len == 0)
+                 {
+                    response.Data = null;
                     response.StatusCode = 404;
                     response.Message = "cannot Add The User";
                     return response;
-                }
-                if (len == 1)
-                {
-                    response.Data = token;
+                 }
+                 if (len == 1)
+                 {
+                    DataModel dm = new DataModel();
+                    dm.Email = obj.Email;
+                    dm.Token = token;
+                    response.Data = dm;                   
                     response.StatusCode = 200;
                     response.Message = "User Added Successfully";
-                }
-                return response;
+                 }
+                 return response;
             }
-            
-
-            Response res = new Response();
-            res.Data = null;
-            res.StatusCode = 409;
-            res.Message = "Email Already Exists";
-            return res;
+            response.Data = null;
+            response.StatusCode = 409;
+            response.Message = "Email Already Exists";
+            return response;
 
         }
         private void CreatePasswordHash(string Password, out byte[] PasswordHash, out byte[] PasswordSalt)
@@ -102,10 +154,13 @@ namespace ChatApplication.Services
                 return response;
             }
             string token = CreateToken(obj, _configuration);
-           
-            response.Data = token;
+
+            DataModel dm = new DataModel();
+            dm.Email = obj.Email;
+            dm.Token = token;
+            response.Data = dm;
             response.StatusCode = 200;
-            response.Message = "Login Successfully";
+            response.Message = "Login Successfull";
             return response;
         }
         private string CreateToken(User obj, IConfiguration _configuration)
@@ -134,8 +189,6 @@ namespace ChatApplication.Services
                 return computedHash.SequenceEqual(PasswordHash);
             }
         }
-
-        // Get User
         public Response GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records)
         {
             var users = _dbContext.Users;
@@ -192,8 +245,6 @@ namespace ChatApplication.Services
             }
             return res;
         }
-
-        // Update User
         public Response UpdateUser(UpdateUser update,string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -203,7 +254,7 @@ namespace ChatApplication.Services
             {
                 res.StatusCode = 404;
                 res.Message = "Not Found";
-                res.Data = obj;
+                res.Data = null;
                 return res;
             }
 
@@ -211,17 +262,15 @@ namespace ChatApplication.Services
             if (update.LastName != null ) { obj.LastName = update.LastName; }
             if (update.Phone != 0) { obj.Phone = update.Phone; }
             if (update.Email != null ) { obj.Email = update.Email; }
-            if (update.DateOfBirth != DateTime.Now) { obj.DateOfBirth = update.DateOfBirth; }
+            if (update.DateOfBirth != DateTime.Now) { obj.DateOfBirth = DateTime.Parse(update.DateOfBirth.ToString("yyyy-MM-dd")); }
             obj.UpdatedAt = DateTime.Now;
 
-            _dbContext.SaveChanges(); 
-             res.Data = obj;
-             res.StatusCode = 200;
-             res.Message = "User details updated";
+            _dbContext.SaveChanges();
+            res.Data = obj;
+            res.StatusCode = 200;
+            res.Message = "User details updated";
             return res;    
         }
-
-        // Delete User
         public Response DeleteUser(Guid UserId)
         {
             var obj = _dbContext.Users.Find(UserId);
@@ -229,7 +278,7 @@ namespace ChatApplication.Services
             Response response = new Response();
             if (len == 0)
             {
-                response.Data = obj;
+                response.Data = null;
                 response.StatusCode = 404;
                 response.Message = "Not Found";
                 return response;
@@ -248,8 +297,6 @@ namespace ChatApplication.Services
             return response;
 
         }
-
-        //Image Upload
         public Response UploadProfileImage(FileUpload upload, string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -257,7 +304,7 @@ namespace ChatApplication.Services
             Response response = new Response();
             if (len == 0)
             {
-                response.Data = obj;
+                response.Data = null;
                 response.StatusCode = 404;
                 response.Message = "User Not Found";
                 return response;
@@ -304,6 +351,7 @@ namespace ChatApplication.Services
             CreatePasswordHash(pass.ConfirmPassword, out byte[] PasswordHash, out byte[] PasswordSalt);
             obj.PasswordHash = PasswordHash;
             obj.PasswordSalt = PasswordSalt;
+            obj.UpdatedAt = DateTime.UtcNow;
             _dbContext.SaveChanges();
             
             response.Data = obj;
