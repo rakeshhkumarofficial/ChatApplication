@@ -19,6 +19,9 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using Newtonsoft.Json.Linq;
+using Azure;
+using System.Text.RegularExpressions;
+using Response = ChatApplication.Models.Response;
 
 namespace ChatApplication.Controllers
 {
@@ -126,6 +129,15 @@ namespace ChatApplication.Controllers
         [HttpPost,Authorize(Roles = "Reset")]
         public IActionResult ResetPassword(ResetPassword reset)
         {
+            Response res = new Response();
+            string regexPatternPassword = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
+            if (!Regex.IsMatch(reset.NewPassword, regexPatternPassword))
+            {  
+                res.StatusCode = 400;
+                res.Message = "Password should be of 8 length contains atleast one Upper, lower alphabet and one special symbol ";
+                res.Data = null;
+                return Ok(res);
+            }
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var dbuser = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -147,7 +159,7 @@ namespace ChatApplication.Controllers
             dbuser.UpdatedAt = DateTime.Now;
             _dbContext.SaveChanges();
 
-            Response res = new Response();
+           
             res.Data = dbuser;
             res.StatusCode = 200;
             res.Message = "Password Reset Successfully";

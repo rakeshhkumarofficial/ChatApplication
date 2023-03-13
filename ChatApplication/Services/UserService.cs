@@ -66,7 +66,7 @@ namespace ChatApplication.Services
             if (!Regex.IsMatch(user.Password, regexPatternPassword))
             {
                 response.StatusCode = 400;
-                response.Message = "Enter Valid Password";
+                response.Message = "\"Password should be of 8 length contains atleast one Upper, lower alphabet and one special symbol";
                 response.Data = null;
                 return response;
             }
@@ -323,9 +323,18 @@ namespace ChatApplication.Services
         }
         public Response ChangePassword(ChangePassword pass, string email)
         {
+            Response response = new Response();
+            string regexPatternPassword = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
+            if (!Regex.IsMatch(pass.NewPassword, regexPatternPassword))
+            {
+                response.StatusCode = 400;
+                response.Message = "Password should be of 8 length contains atleast one Upper, lower alphabet and one special symbol ";
+                response.Data = null;
+                return response;
+            }
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
             int len = obj == null ? 0 : 1;
-            Response response = new Response();
+            
             if (len == 0)
             {
                 response.Data = obj;
