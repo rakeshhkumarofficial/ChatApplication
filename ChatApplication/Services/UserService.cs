@@ -189,6 +189,7 @@ namespace ChatApplication.Services
                 return computedHash.SequenceEqual(PasswordHash);
             }
         }
+        /*
         public Response GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records)
         {
             var users = _dbContext.Users;
@@ -245,6 +246,7 @@ namespace ChatApplication.Services
             }
             return res;
         }
+        */
         public Response UpdateUser(UpdateUser update,string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -366,6 +368,23 @@ namespace ChatApplication.Services
             response.Data = obj;
             response.StatusCode = 200;
             response.Message = "Password Changed Successfully";
+            return response;
+        }
+        public Response Search(string Name)
+        {
+            
+            Response response = new Response();
+            //var names = Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var users = _dbContext.Users.Where(u => (u.FirstName + " " + u.LastName).Contains(Name));
+            if(users == null || users.Count() == 0) {
+                response.Data = null;
+                response.StatusCode = 404;
+                response.Message = "No User found with this Name";
+                return response; 
+            }
+            response.Data = users;
+            response.StatusCode = 200;
+            response.Message = "List Of Users";
             return response;
         }
     }

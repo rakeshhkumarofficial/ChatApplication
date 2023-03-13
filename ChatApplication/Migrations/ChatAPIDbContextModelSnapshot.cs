@@ -22,6 +22,56 @@ namespace ChatApplication.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ChatApplication.Models.ChatMessage", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ChatRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("RecieverId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("ChatRoomId");
+
+                    b.ToTable("ChatMessages");
+                });
+
+            modelBuilder.Entity("ChatApplication.Models.ChatRoom", b =>
+                {
+                    b.Property<Guid>("ChatRoomId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChatRoomName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ChatRoomId");
+
+                    b.ToTable("ChatRooms");
+                });
+
             modelBuilder.Entity("ChatApplication.Models.ForgetPassword", b =>
                 {
                     b.Property<Guid>("Id")
@@ -48,6 +98,9 @@ namespace ChatApplication.Migrations
                 {
                     b.Property<Guid>("UserId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ChatRoomId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -85,7 +138,30 @@ namespace ChatApplication.Migrations
 
                     b.HasKey("UserId");
 
+                    b.HasIndex("ChatRoomId");
+
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ChatApplication.Models.ChatMessage", b =>
+                {
+                    b.HasOne("ChatApplication.Models.ChatRoom", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatRoomId");
+                });
+
+            modelBuilder.Entity("ChatApplication.Models.User", b =>
+                {
+                    b.HasOne("ChatApplication.Models.ChatRoom", null)
+                        .WithMany("Members")
+                        .HasForeignKey("ChatRoomId");
+                });
+
+            modelBuilder.Entity("ChatApplication.Models.ChatRoom", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("Messages");
                 });
 #pragma warning restore 612, 618
         }

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Data;
 
 namespace ChatApplication.Controllers
 {
@@ -41,6 +42,8 @@ namespace ChatApplication.Controllers
             return Ok(token);
         }
 
+        /*
+
         [HttpGet, Authorize(Roles ="Login")]
         public IActionResult GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records)
         {
@@ -48,6 +51,7 @@ namespace ChatApplication.Controllers
             var res = service.GetUser(UserId, FirstName,LastName, Phone,sort, pageNumber, records);
             return Ok(res);
         }
+        */
         [HttpPost, Authorize(Roles = "Login")]
         public IActionResult UpdateUser(UpdateUser update)
         {
@@ -83,6 +87,25 @@ namespace ChatApplication.Controllers
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             IUserService service = new UserService(_dbContext, _configuration);
             var res = service.ChangePassword(pass,email);
+            return Ok(res);
+        }
+
+        [HttpGet,Authorize(Roles = "Login")]
+        public IActionResult Search(string Name)
+        {
+            IUserService service = new UserService(_dbContext, _configuration);
+            var res = service.Search(Name);
+            return Ok(res);
+        }
+
+        [HttpPost, Authorize(Roles = "Login")]
+        public IActionResult Logout()
+        {
+            HttpContext.SignOutAsync();  
+            Response res = new Response();
+            res.StatusCode = 200;
+            res.Message = " Logged Out Successfully";
+            res.Data = null;
             return Ok(res);
         }
     }
