@@ -100,9 +100,6 @@ namespace ChatApplication.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ChatRoomId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -138,9 +135,29 @@ namespace ChatApplication.Migrations
 
                     b.HasKey("UserId");
 
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ChatApplication.Models.UserRoomMap", b =>
+                {
+                    b.Property<Guid>("MapId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ChatRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("User1Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("User2Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("MapId");
+
                     b.HasIndex("ChatRoomId");
 
-                    b.ToTable("Users");
+                    b.ToTable("UserRoomsMaps");
                 });
 
             modelBuilder.Entity("ChatApplication.Models.ChatMessage", b =>
@@ -150,7 +167,7 @@ namespace ChatApplication.Migrations
                         .HasForeignKey("ChatRoomId");
                 });
 
-            modelBuilder.Entity("ChatApplication.Models.User", b =>
+            modelBuilder.Entity("ChatApplication.Models.UserRoomMap", b =>
                 {
                     b.HasOne("ChatApplication.Models.ChatRoom", null)
                         .WithMany("Members")

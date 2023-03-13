@@ -4,11 +4,12 @@ using ChatApplication.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Security.Claims;
 
 namespace ChatApplication.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[Action]")]
     [ApiController]
     public class ChatController : ControllerBase
     {
@@ -32,5 +33,14 @@ namespace ChatApplication.Controllers
             return Ok(res);          
         }
 
+        [HttpDelete,Authorize(Roles ="Login")]
+        public IActionResult DeleteRoom(Guid roomId)
+        {
+            var user = HttpContext.User;
+            var email = user.FindFirst(ClaimTypes.Name)?.Value;  
+            IChatService chatService = new ChatService(_dbContext, _configuration);
+            var res = chatService.DeleteRoom(email,roomId);
+            return Ok(res);
+        }
     }
 }

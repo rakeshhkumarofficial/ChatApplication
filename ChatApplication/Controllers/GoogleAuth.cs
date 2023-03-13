@@ -3,10 +3,12 @@ using ChatApplication.Models;
 using ChatApplication.Services;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,7 +26,6 @@ namespace ChatApplication.Controllers
         {
             _dbContext = dbContext;
             _configuration = configuration;
-
         }
 
         [HttpPost]
@@ -90,5 +91,15 @@ namespace ChatApplication.Controllers
             return jwt;
         }
 
+        [HttpPost, Authorize(Roles = "Login")]
+        public IActionResult Logout()
+        {
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            Response res = new Response();
+            res.StatusCode = 200;
+            res.Message = " Logged Out Successfully";
+            res.Data = null;
+            return Ok(res);
+        }      
     }
 }

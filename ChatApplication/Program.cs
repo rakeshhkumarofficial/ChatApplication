@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.Filters;
 
 using System.Text;
 using NETCore.MailKit.Core;
+using ChatApplication.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +50,8 @@ builder.Services.AddCors(options => options.AddPolicy(name: "CorsPolicy",
     }
 ));
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -64,8 +67,15 @@ app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
 
+
 app.UseAuthorization();
 
+app.MapHub<ChatHub>("/ChatHub");
+
+
 app.MapControllers();
+
+
+
 
 app.Run();

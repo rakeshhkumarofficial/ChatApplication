@@ -98,15 +98,6 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
-        [HttpPost, Authorize(Roles = "Login")]
-        public IActionResult Logout()
-        {
-            HttpContext.SignOutAsync();  
-            Response res = new Response();
-            res.StatusCode = 200;
-            res.Message = " Logged Out Successfully";
-            res.Data = null;
-            return Ok(res);
-        }
+        
     }
 }

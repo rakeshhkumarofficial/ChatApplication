@@ -1,5 +1,6 @@
 ﻿using ChatApplication.Models;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace ChatApplication.Data
 {
@@ -12,5 +13,7 @@ namespace ChatApplication.Data
         public DbSet<ForgetPassword> ForgetPasswords { get; set; }
         public DbSet<ChatRoom> ChatRooms { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<UserRoomMap> UserRoomsMaps { get; set;}
+       
     }
 }
