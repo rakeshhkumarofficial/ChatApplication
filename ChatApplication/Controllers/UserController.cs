@@ -93,8 +93,10 @@ namespace ChatApplication.Controllers
         [HttpGet,Authorize(Roles = "Login")]
         public IActionResult Search(string Name)
         {
+            var user = HttpContext.User;
+            var email = user.FindFirst(ClaimTypes.Name)?.Value;
             IUserService service = new UserService(_dbContext, _configuration);
-            var res = service.Search(Name);
+            var res = service.Search(Name,email);
             return Ok(res);
         }
 

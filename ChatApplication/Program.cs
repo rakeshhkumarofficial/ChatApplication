@@ -76,6 +76,4 @@ app.MapHub<ChatHub>("/ChatHub");
 app.MapControllers();
 
 
-
-
 app.Run();
