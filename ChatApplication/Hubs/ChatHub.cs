@@ -25,7 +25,7 @@ namespace ChatApplication.Hubs
             ConnectionId.Add(email, Context.ConnectionId);
             return base.OnConnectedAsync();
         }
-        public async Task<object> CreateChat(Guid Receiver)
+        public object CreateChat(Guid Receiver)
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
@@ -77,14 +77,17 @@ namespace ChatApplication.Hubs
             await Clients.User(connId).SendAsync("ReceiveMessage", Sender, message);
             await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
         }
-        public async Task GetOnlineUsers()
+        public object GetOnlineUsers()
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var obj = ConnectionId.Where(x => x.Key != email).Select(x => x.Key);
-            var connId = ConnectionId.Where(x => x.Key == email).Select(x => x.Value).First();
-            await Clients.User(connId).SendAsync("RecieveOnlineUsers", obj);
+            Response res = new Response();
+            res.StatusCode = 200;
+            res.Message = "online Users List";
+            res.Data = obj;
+            return res;
         }
         public object GetChats()
         {
