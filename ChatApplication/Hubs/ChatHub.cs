@@ -8,6 +8,7 @@ using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace ChatApplication.Hubs
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ChatHub : Hub
     {
         private readonly ChatAPIDbContext _dbContext;
@@ -15,9 +16,7 @@ namespace ChatApplication.Hubs
         public ChatHub(ChatAPIDbContext dbContext)
         {
             _dbContext = dbContext;
-        }
-
-        [Authorize(Roles = "Login")]
+        }      
         public override Task OnConnectedAsync()
         {
             var httpContext = Context.GetHttpContext();
@@ -26,8 +25,6 @@ namespace ChatApplication.Hubs
             ConnectionId.Add(email, Context.ConnectionId);
             return base.OnConnectedAsync();
         }
-
-        [Authorize(Roles = "Login")]
         public async Task<object> CreateChat(Guid Receiver)
         {
             var httpContext = Context.GetHttpContext();
@@ -57,8 +54,6 @@ namespace ChatApplication.Hubs
             res.StatusCode = 200;
             return res;
         }
-
-        [Authorize(Roles = "Login")]
         public async Task SendMessage(Guid ReceiverId, string message)
          {
 
@@ -80,9 +75,8 @@ namespace ChatApplication.Hubs
             var recievermail = _dbContext.Users.FirstOrDefault(u => u.UserId == ReceiverId);
             var connId = ConnectionId.Where(x => x.Key == recievermail.Email).Select(x => x.Value).First();
             await Clients.User(connId).SendAsync("ReceiveMessage", Sender, message);
-         }
-
-        [Authorize(Roles = "Login")]
+            await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
+        }
         public async Task GetOnlineUsers()
         {
             var httpContext = Context.GetHttpContext();
@@ -92,7 +86,6 @@ namespace ChatApplication.Hubs
             var connId = ConnectionId.Where(x => x.Key == email).Select(x => x.Value).First();
             await Clients.User(connId).SendAsync("RecieveOnlineUsers", obj);
         }
-
         public object GetChats()
         {
             var httpContext = Context.GetHttpContext();
@@ -102,8 +95,6 @@ namespace ChatApplication.Hubs
             var chats = _dbContext.UserChatMaps.Where(u => u.SenderId == User.UserId).Select(u => u);
             return chats;
         }
-
-        [Authorize(Roles = "Login")]
         public override Task OnDisconnectedAsync(Exception? exception)
         {
             var httpContext = Context.GetHttpContext();
