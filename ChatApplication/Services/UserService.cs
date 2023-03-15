@@ -371,10 +371,8 @@ namespace ChatApplication.Services
             return response;
         }
         public Response Search(string Name, string email)
-        {
-            
+        {    
             Response response = new Response();
-            //var names = Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var users = _dbContext.Users.Where(u => (u.FirstName + " " + u.LastName).Contains(Name));
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
 

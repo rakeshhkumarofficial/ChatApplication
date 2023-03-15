@@ -90,7 +90,7 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
-        [HttpGet,Authorize(Roles = "Login")]
+        [HttpGet, Authorize(Roles = "Login")]
         public IActionResult Search(string Name)
         {
             var user = HttpContext.User;
@@ -99,7 +99,6 @@ namespace ChatApplication.Controllers
             var res = service.Search(Name,email);
             return Ok(res);
         }
-
         
     }
 }

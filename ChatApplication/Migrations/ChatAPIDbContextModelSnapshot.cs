@@ -22,20 +22,34 @@ namespace ChatApplication.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ChatApplication.Models.ChatMap", b =>
+                {
+                    b.Property<Guid>("MapId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ReceiverId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("MapId");
+
+                    b.ToTable("UserChatMaps");
+                });
+
             modelBuilder.Entity("ChatApplication.Models.ChatMessage", b =>
                 {
                     b.Property<Guid>("MessageId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ChatRoomId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("RecieverId")
+                    b.Property<Guid>("ReceiverId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("SenderId")
@@ -46,30 +60,7 @@ namespace ChatApplication.Migrations
 
                     b.HasKey("MessageId");
 
-                    b.HasIndex("ChatRoomId");
-
                     b.ToTable("ChatMessages");
-                });
-
-            modelBuilder.Entity("ChatApplication.Models.ChatRoom", b =>
-                {
-                    b.Property<Guid>("ChatRoomId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ChatRoomName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ChatRoomId");
-
-                    b.ToTable("ChatRooms");
                 });
 
             modelBuilder.Entity("ChatApplication.Models.ForgetPassword", b =>
@@ -136,49 +127,6 @@ namespace ChatApplication.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("ChatApplication.Models.UserRoomMap", b =>
-                {
-                    b.Property<Guid>("MapId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ChatRoomId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("User1Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("User2Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("MapId");
-
-                    b.HasIndex("ChatRoomId");
-
-                    b.ToTable("UserRoomsMaps");
-                });
-
-            modelBuilder.Entity("ChatApplication.Models.ChatMessage", b =>
-                {
-                    b.HasOne("ChatApplication.Models.ChatRoom", null)
-                        .WithMany("Messages")
-                        .HasForeignKey("ChatRoomId");
-                });
-
-            modelBuilder.Entity("ChatApplication.Models.UserRoomMap", b =>
-                {
-                    b.HasOne("ChatApplication.Models.ChatRoom", null)
-                        .WithMany("Members")
-                        .HasForeignKey("ChatRoomId");
-                });
-
-            modelBuilder.Entity("ChatApplication.Models.ChatRoom", b =>
-                {
-                    b.Navigation("Members");
-
-                    b.Navigation("Messages");
                 });
 #pragma warning restore 612, 618
         }

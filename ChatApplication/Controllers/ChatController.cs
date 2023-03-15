@@ -6,7 +6,9 @@
 //using Microsoft.AspNetCore.Http;
 //using Microsoft.AspNetCore.Mvc;
 //using Microsoft.AspNetCore.SignalR;
+//using Microsoft.EntityFrameworkCore;
 //using System;
+//using System.Net.Http;
 //using System.Security.Claims;
 
 //namespace ChatApplication.Controllers
@@ -17,16 +19,21 @@
 //    {
 
 //        private readonly IHubContext<ChatHub> _hubContext;
+//        private readonly ChatAPIDbContext _dbContext;
 
-//        public ChatController(IHubContext<ChatHub> hubContext)
+//        public ChatController(IHubContext<ChatHub> hubContext, ChatAPIDbContext dbContext)
 //        {
 //            _hubContext = hubContext;
+//            _dbContext = dbContext;
 //        }
-                                         
-//        [HttpPost]
-//        public IActionResult Send(Guid ReceiverId , string message)
+
+//        [HttpPost,Authorize(Roles ="Login")]
+//        public async Task<IActionResult> SendMessage([FromQuery] Guid RecieverId, [FromQuery] string message)
 //        {
-//            _hubContext.Clients.All.SendAsync("ReceiveMessage", ReceiverId, message);
+//            var user = HttpContext.User;
+//            var email = user.FindFirst(ClaimTypes.Name)?.Value;
+//            var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
+//            await _hubContext.Clients.Users(RecieverId.ToString()).SendAsync("ReceiveMessage",User.UserId, message);
 //            return Ok();
 //        }
 

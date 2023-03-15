@@ -2,13 +2,11 @@
 
 namespace ChatApplication.Models
 {
-    public class ChatMessage
+    public class ChatMap
     {
         [Key]
-        public Guid MessageId { get; set; }
+        public Guid MapId { get; set; }
         public Guid SenderId { get; set; }
         public Guid ReceiverId { get; set; }
-        public string Message { get; set; }
-        public DateTime TimeStamp { get; set; } 
     }
 }
