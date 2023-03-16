@@ -3,6 +3,8 @@ using ChatApplication.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System;
+using System.Linq;
 using System.Security.Claims;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 
@@ -77,26 +79,66 @@ namespace ChatApplication.Hubs
             await Clients.User(connId).SendAsync("ReceiveMessage", Sender, message);
             await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
         }
-        public object GetOnlineUsers()
+        public Response GetOnlineUsers()
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
-            var obj = ConnectionId.Where(x => x.Key != email).Select(x => x.Key);
+            var obj = ConnectionId.Where(x => x.Key != email).Select(x => x.Key).ToList();
+            List<object> usernames = new List<object>(); 
+            foreach ( var obj2 in obj)
+            {
+                var users = _dbContext.Users.Where(x => x.Email.ToLower() == obj2.ToLower()).Select(u=>new {u.FirstName , u.LastName});
+                usernames.Add(users);
+            }        
             Response res = new Response();
             res.StatusCode = 200;
-            res.Message = "online Users List";
-            res.Data = obj;
+            res.Message = "online Users";
+            res.Data = usernames;
             return res;
         }
-        public object GetChats()
+        public Response GetChats()
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            var chats = _dbContext.UserChatMaps.Where(u => u.SenderId == User.UserId).Select(u => u);
-            return chats;
+            var ReceiverIds = _dbContext.UserChatMaps.Where(u => u.SenderId == User.UserId).Select(u => u.ReceiverId).ToList();
+            Response res = new Response();
+            if (ReceiverIds != null)
+            {
+                List<object> chatlist = new List<object>();
+                foreach (var receiverid in ReceiverIds) {
+                    var obj = _dbContext.Users.Where(u => u.UserId == receiverid).Select(u=>  new { u.FirstName, u.LastName });
+                    chatlist.Add(obj);
+                 }
+                res.StatusCode = 200;
+                res.Message = "chats List";
+                res.Data = chatlist;
+                return res;
+            }
+            res.StatusCode = 404;
+            res.Message = "Chat doesn't Exist";
+            res.Data = null;
+            return res;
+        }
+        public Response LoadMessages(Guid ReceiverId)
+        {
+            var httpContext = Context.GetHttpContext();
+            var user1 = httpContext.User;
+            var email = user1.FindFirst(ClaimTypes.Name)?.Value;
+            var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
+            var msgs = _dbContext.ChatMessages.Where(x => x.SenderId == User.UserId && x.ReceiverId == ReceiverId);
+            var orderedmsg = msgs.OrderByDescending(m => m.TimeStamp).Select(x => x);
+            int pages = 10;
+            int records = 30;
+            var pageRecords = (orderedmsg.Skip((pages - 1) * records).Take(records));
+            var usersname = _dbContext.Users.Where(u => u.UserId == User.UserId || u.UserId == ReceiverId).Select(u => new { u.FirstName, u.LastName });
+            Response res = new Response();
+            res.StatusCode = 200;
+            res.Message = "Previous messages";
+            res.Data = new {pageRecords , usersname};
+            return res;            
         }
         public override Task OnDisconnectedAsync(Exception? exception)
         {

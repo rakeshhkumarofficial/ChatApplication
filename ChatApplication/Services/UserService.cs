@@ -66,7 +66,7 @@ namespace ChatApplication.Services
             if (!Regex.IsMatch(user.Password, regexPatternPassword))
             {
                 response.StatusCode = 400;
-                response.Message = "\"Password should be of 8 length contains atleast one Upper, lower alphabet and one special symbol";
+                response.Message = "\"Password should contains 8 Characters atleast one Upper, lower alphabet and one special symbol";
                 response.Data = null;
                 return response;
             }
