@@ -78,11 +78,12 @@ app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
+app.UseRouting();
 
-
-app.UseAuthorization();
 
 app.MapHub<ChatHub>("/ChatHub");
+app.UseAuthorization();
+
 
 
 app.MapControllers();
