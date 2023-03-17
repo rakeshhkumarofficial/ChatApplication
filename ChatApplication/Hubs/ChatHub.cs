@@ -45,6 +45,14 @@ namespace ChatApplication.Hubs
                     ReceiverId = Receiver
                 };
                 _dbContext.UserChatMaps.Add(chatmap);
+
+                var chatmap2 = new ChatMap()
+                {
+                    MapId = Guid.NewGuid(),
+                    SenderId = Receiver,
+                    ReceiverId = User.UserId
+                };
+                _dbContext.UserChatMaps.Add(chatmap2);
                 _dbContext.SaveChanges();
             }
             var obj = _dbContext.UserChatMaps.Where(x => x.SenderId == User.UserId && x.ReceiverId == Receiver).Select(x => x).FirstOrDefault();
@@ -58,7 +66,7 @@ namespace ChatApplication.Hubs
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            bool isExists = _dbContext.UserChatMaps.Where(x => x.SenderId == User.UserId && x.ReceiverId == ReceiverId).Any();
+            bool isExists = _dbContext.UserChatMaps.Where(x => (x.SenderId == User.UserId && x.ReceiverId == ReceiverId) || (x.SenderId == ReceiverId && x.ReceiverId == User.UserId)).Any();
             if (!isExists)
             {
                 await Clients.Caller.SendAsync("ReceiveMessage", "First Create chat with this User ");
@@ -118,8 +126,7 @@ namespace ChatApplication.Hubs
             var ReceiverIds = _dbContext.UserChatMaps.Where(u => u.SenderId == User.UserId).Select(u => u.ReceiverId).ToList();
             List<string> chatlist = new List<string>();
             if (ReceiverIds != null)
-            {
-                
+            {               
                 foreach (var receiverid in ReceiverIds)
                 {
                     var obj = _dbContext.Users.Where(u => u.UserId == receiverid).Select(u => u).First();
