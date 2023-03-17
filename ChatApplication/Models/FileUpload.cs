@@ -2,6 +2,6 @@
 {
     public class FileUpload
     {
-        public IFormFile? ProfileImage { get; set; }
+        public IFormFile? File { get; set; }
     }
 }

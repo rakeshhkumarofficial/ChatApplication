@@ -89,17 +89,6 @@ namespace ChatApplication.Controllers
             );
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return jwt;
-        }
-
-        //[HttpPost, Authorize(Roles = "Login")]
-        //public IActionResult Logout()
-        //{
-        //    HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        //    Response res = new Response();
-        //    res.StatusCode = 200;
-        //    res.Message = " Logged Out Successfully";
-        //    res.Data = null;
-        //    return Ok(res);
-        //}      
+        }  
     }
 }

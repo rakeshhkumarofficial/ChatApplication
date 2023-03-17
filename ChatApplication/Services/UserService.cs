@@ -311,11 +311,11 @@ namespace ChatApplication.Services
                 response.Message = "User Not Found";
                 return response;
             }
-            string folder = "wwwroot/Images/";
-            folder += upload.ProfileImage.FileName;
+            string folder = "C:/Users/ChicMic/Desktop/CricApp/ChatApp/ChatApplication/ChatApplication/wwwroot/Images/";
+            folder += upload.File.FileName;
             obj.PathToProfilePic = folder;
             string path = folder;
-            upload.ProfileImage.CopyTo(new FileStream(path, FileMode.Create));
+            upload.File.CopyTo(new FileStream(path, FileMode.Create));
             _dbContext.SaveChanges();
             response.Data = obj;
             response.StatusCode = 200;
@@ -396,5 +396,52 @@ namespace ChatApplication.Services
             response.Message = "List Of Users";
             return response;
         }
+
+        public Response UploadImage(FileUpload upload, string email)
+        {
+            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
+            int len = obj == null ? 0 : 1;
+            Response response = new Response();
+            if (len == 0)
+            {
+                response.Data = null;
+                response.StatusCode = 404;
+                response.Message = "User Not Found";
+                return response;
+            }
+            string folder = "C:/Users/ChicMic/Desktop/CricApp/ChatApp/ChatApplication/ChatApplication/wwwroot/Images/";
+            folder += upload.File.FileName;
+           
+            string path = folder;
+            upload.File.CopyTo(new FileStream(path, FileMode.Create));         
+            response.Data = path;
+            response.StatusCode = 200;
+            response.Message = "Image Uploaded Successfully..";
+            return response;
+        }
+        public Response UploadFile(FileUpload upload, string email)
+        {
+            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
+            int len = obj == null ? 0 : 1;
+            Response response = new Response();
+            if (len == 0)
+            {
+                response.Data = null;
+                response.StatusCode = 404;
+                response.Message = "User Not Found";
+                return response;
+            }
+            string folder = "C:/Users/ChicMic/Desktop/CricApp/ChatApp/ChatApplication/ChatApplication/wwwroot/Files/";
+            folder += upload.File.FileName;
+
+            string path = folder;
+            upload.File.CopyTo(new FileStream(path, FileMode.Create));
+            response.Data = path;
+            response.StatusCode = 200;
+            response.Message = "File Uploaded Successfully..";
+            return response;
+        }
+
+
     }
 }

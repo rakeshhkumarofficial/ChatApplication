@@ -58,24 +58,33 @@ namespace ChatApplication.Hubs
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            var msg = new ChatMessage()
+            bool isExists = _dbContext.UserChatMaps.Where(x => x.SenderId == User.UserId && x.ReceiverId == ReceiverId).Any();
+            if (!isExists)
             {
-                MessageId = Guid.NewGuid(),
-                SenderId = User.UserId,
-                ReceiverId = ReceiverId,
-                Message = message,
-                TimeStamp = DateTime.UtcNow
-            };
-            var Sender = User.FirstName;
-            _dbContext.ChatMessages.Add(msg);
-            _dbContext.SaveChanges();
-            var recievermail = _dbContext.Users.FirstOrDefault(u => u.UserId == ReceiverId);
-            var connId = ConnectionId.Where(x => x.Key == recievermail.Email).Select(x => x.Value);
-            await Clients.Clients(connId).SendAsync("ReceiveMessage",Sender,message);
-            await Clients.Caller.SendAsync("ReceiveMessage",Sender,message);
-            
-        } 
-          
+                await Clients.Caller.SendAsync("ReceiveMessage", "First Create chat with this User ");
+            }
+            if (isExists)
+            {
+                var msg = new ChatMessage()
+                {
+                    MessageId = Guid.NewGuid(),
+                    SenderId = User.UserId,
+                    ReceiverId = ReceiverId,
+                    Message = message,
+                    TimeStamp = DateTime.UtcNow
+                };
+                var Sender = User.FirstName;
+                _dbContext.ChatMessages.Add(msg);
+                _dbContext.SaveChanges();
+                var recievermail = _dbContext.Users.FirstOrDefault(u => u.UserId == ReceiverId);
+                var connId = ConnectionId.Where(x => x.Key == recievermail.Email).Select(x => x.Value);
+                await Clients.Clients(connId).SendAsync("ReceiveMessage", Sender, message);
+                await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
+            }
+
+           
+
+        }           
         public async Task GetOnlineUsers()
         {
             var httpContext = Context.GetHttpContext();
@@ -89,10 +98,17 @@ namespace ChatApplication.Hubs
             {
                 var usernames = _dbContext.Users.Where(x => x.Email == obj2).Select(x => x).First();
                 names.Add(usernames.FirstName + " " + usernames.LastName);              
-            }         
-            await Clients.Caller.SendAsync("OnlineUsersList", names);          
-        }
-        
+            }
+            if (names.Count > 0)
+            {
+                await Clients.Caller.SendAsync("OnlineUsersList", names);
+            }
+            if (names.Count == 0)
+            {
+                await Clients.Caller.SendAsync("OnlineUsersList", "No one is online");
+            }
+
+        }        
         public async Task GetChats()
         {
             var httpContext = Context.GetHttpContext();
@@ -112,7 +128,6 @@ namespace ChatApplication.Hubs
             }
             await Clients.Caller.SendAsync("ChatList", chatlist);
         }
-
         public async Task LoadMessages(Guid ReceiverId)
         {
             var httpContext = Context.GetHttpContext();
@@ -125,7 +140,7 @@ namespace ChatApplication.Hubs
             var usersname = _dbContext.Users.Where(u => u.UserId == User.UserId || u.UserId == ReceiverId).Select(u => new { u.FirstName, u.LastName }).First();
 
             var messagelist = new { usersname , messages };
-            await Clients.Caller.SendAsync("oldMessages", messagelist);
+            await Clients.Caller.SendAsync("OldMessages", messagelist);
 
         } 
         public override Task OnDisconnectedAsync(Exception? exception)
@@ -136,7 +151,6 @@ namespace ChatApplication.Hubs
             ConnectionId.Remove(email);
             return base.OnDisconnectedAsync(exception);
         }
-        
-       
+               
     }
 }

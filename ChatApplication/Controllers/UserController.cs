@@ -42,16 +42,6 @@ namespace ChatApplication.Controllers
             return Ok(token);
         }
 
-        /*
-
-        [HttpGet, Authorize(Roles ="Login")]
-        public IActionResult GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records)
-        {
-            IUserService service = new UserService(_dbContext, _configuration);
-            var res = service.GetUser(UserId, FirstName,LastName, Phone,sort, pageNumber, records);
-            return Ok(res);
-        }
-        */
         [HttpPost, Authorize(Roles = "Login")]
         public IActionResult UpdateUser(UpdateUser update)
         {
@@ -71,13 +61,26 @@ namespace ChatApplication.Controllers
         }
 
         [HttpPost, Authorize(Roles = "Login")]
-        public IActionResult FileUpload([FromForm] FileUpload upload)
+        public IActionResult FileUpload([FromForm] FileUpload upload , int type)
         {
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             IUserService service = new UserService(_dbContext, _configuration);
-            var res = service.UploadProfileImage(upload,email);
-            return Ok(res);
+            if (type == 1) {
+                var res = service.UploadProfileImage(upload, email);
+                return Ok(res);
+            }
+            if(type == 2)
+            {
+                var res = service.UploadImage(upload, email);
+                return Ok(res);
+            }
+            if(type == 3)
+            {
+                var res = service.UploadFile(upload, email);
+                return Ok(res);
+            }
+            return Ok("Type is wrong");
         }
 
         [HttpPost, Authorize(Roles = "Login")]

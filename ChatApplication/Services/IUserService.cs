@@ -9,6 +9,8 @@ namespace ChatApplication.Services
         public Response UpdateUser(UpdateUser update,string email);
         public Response DeleteUser(Guid UserId);
         public Response UploadProfileImage(FileUpload upload, string email);
+        public Response UploadImage(FileUpload upload, string email);
+        public Response UploadFile(FileUpload upload, string email);
         public Response ChangePassword(ChangePassword pass,string email);
         public Response Search(string Name,string email);
     }
