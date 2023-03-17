@@ -305,9 +305,9 @@ namespace ChatApplication.Services
             res.Message = "User details updated";
             return res;    
         }
-        public Response DeleteUser(Guid UserId)
+        public Response DeleteUser(string email)
         {
-            var obj = _dbContext.Users.Find(UserId);
+            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
             int len = obj == null ? 0 : 1;
             Response response = new Response();
             if (len == 0)

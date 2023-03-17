@@ -43,7 +43,7 @@ namespace ChatApplication.Controllers
         }
 
         [HttpPost, Authorize(Roles = "Login")]
-        public IActionResult UpdateUser(UpdateUser update)
+        public IActionResult UpdateProfile(UpdateUser update)
         {
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
@@ -53,10 +53,12 @@ namespace ChatApplication.Controllers
         }
 
         [HttpDelete, Authorize(Roles = "Login")]
-        public IActionResult DeleteUser(Guid UserId)
+        public IActionResult DeleteAccount()
         {
+            var user = HttpContext.User;
+            var email = user.FindFirst(ClaimTypes.Name)?.Value;
             IUserService service = new UserService(_dbContext, _configuration);
-            var res = service.DeleteUser(UserId);
+            var res = service.DeleteUser(email);
             return Ok(res);
         }
 

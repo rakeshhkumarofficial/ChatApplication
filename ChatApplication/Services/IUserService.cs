@@ -7,7 +7,7 @@ namespace ChatApplication.Services
         public Response AddUser(Register user);
         public Response Login(Login login, IConfiguration _configuration);    
         public Response UpdateUser(UpdateUser update,string email);
-        public Response DeleteUser(Guid UserId);
+        public Response DeleteUser(string email);
         public Response UploadProfileImage(FileUpload upload, string email);
         public Response UploadImage(FileUpload upload, string email);
         public Response UploadFile(FileUpload upload, string email);

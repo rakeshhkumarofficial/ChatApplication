@@ -157,7 +157,6 @@ namespace ChatApplication.Hubs
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             ConnectionId.Remove(email);
             return base.OnDisconnectedAsync(exception);
-        }
-               
+        }              
     }
 }

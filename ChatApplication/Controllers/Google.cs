@@ -18,11 +18,11 @@ namespace ChatApplication.Controllers
 {
     [Route("api/[controller]/[Action]")]
     [ApiController]
-    public class GoogleAuth : ControllerBase
+    public class Google : ControllerBase
     {
         private readonly ChatAPIDbContext _dbContext;
         public readonly IConfiguration _configuration;
-        public GoogleAuth(ChatAPIDbContext dbContext, IConfiguration configuration)
+        public Google(ChatAPIDbContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _configuration = configuration;
