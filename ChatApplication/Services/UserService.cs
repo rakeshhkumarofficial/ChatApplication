@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using System.Formats.Tar;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -342,11 +343,15 @@ namespace ChatApplication.Services
                 response.Message = "User Not Found";
                 return response;
             }
-            string folder = "C:/Users/ChicMic/Desktop/CricApp/ChatApp/ChatApplication/ChatApplication/wwwroot/Images/";
-            folder += upload.File.FileName;
-            obj.PathToProfilePic = folder;
-            string path = folder;
-            upload.File.CopyTo(new FileStream(path, FileMode.Create));
+            var fileName = Path.GetFileNameWithoutExtension(upload.File.FileName);
+            var fileExt = Path.GetExtension(upload.File.FileName);
+            var uniqueFileName = $"{fileName}_{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}{fileExt}";
+            string imagePath = Path.Combine("wwwroot", "Images", uniqueFileName);
+            string path = Path.Combine(Directory.GetCurrentDirectory(), imagePath);           
+            obj.PathToProfilePic = path;
+            var filestream = System.IO.File.Create(path);
+            upload.File.CopyTo(filestream);
+            filestream.Close();
             _dbContext.SaveChanges();
             response.Data = obj;
             response.StatusCode = 200;
@@ -439,11 +444,15 @@ namespace ChatApplication.Services
                 response.Message = "User Not Found";
                 return response;
             }
-            string folder = "C:/Users/ChicMic/Desktop/CricApp/ChatApp/ChatApplication/ChatApplication/wwwroot/Images/";
-            folder += upload.File.FileName;
-           
-            string path = folder;
-            upload.File.CopyTo(new FileStream(path, FileMode.Create));         
+            var fileName = Path.GetFileNameWithoutExtension(upload.File.FileName);
+            var fileExt = Path.GetExtension(upload.File.FileName);
+            var uniqueFileName = $"{fileName}_{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}{fileExt}";
+            string imagePath = Path.Combine("wwwroot", "Images", uniqueFileName);
+            string path = Path.Combine(Directory.GetCurrentDirectory(), imagePath);
+
+            var filestream = System.IO.File.Create(path);
+            upload.File.CopyTo(filestream);
+            filestream.Close();
             response.Data = path;
             response.StatusCode = 200;
             response.Message = "Image Uploaded Successfully..";
@@ -461,16 +470,19 @@ namespace ChatApplication.Services
                 response.Message = "User Not Found";
                 return response;
             }
-            string folder = "C:/Users/ChicMic/Desktop/CricApp/ChatApp/ChatApplication/ChatApplication/wwwroot/Files/";
-            folder += upload.File.FileName;
+            var fileName = Path.GetFileNameWithoutExtension(upload.File.FileName);
+            var fileExt = Path.GetExtension(upload.File.FileName);
+            var uniqueFileName = $"{fileName}_{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}{fileExt}";
+            string imagePath = Path.Combine("wwwroot", "Files", uniqueFileName);
+            string path = Path.Combine(Directory.GetCurrentDirectory(), imagePath);
 
-            string path = folder;
-            upload.File.CopyTo(new FileStream(path, FileMode.Create));
+            var filestream = System.IO.File.Create(path);
+            upload.File.CopyTo(filestream);
+            filestream.Close();
             response.Data = path;
             response.StatusCode = 200;
             response.Message = "File Uploaded Successfully..";
             return response;
         }
-
     }
 }

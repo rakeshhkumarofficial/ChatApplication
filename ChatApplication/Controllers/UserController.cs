@@ -68,6 +68,7 @@ namespace ChatApplication.Controllers
             IUserService service = new UserService(_dbContext, _configuration);
             if (type == 1) {
                 var res = service.UploadProfileImage(upload, email);
+               
                 return Ok(res);
             }
             if(type == 2)
