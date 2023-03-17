@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using static Google.Apis.Requests.BatchRequest;
 using Response = ChatApplication.Models.Response;
 
 namespace ChatApplication.Services
@@ -259,14 +260,44 @@ namespace ChatApplication.Services
                 res.Data = null;
                 return res;
             }
-
             if (update.FirstName != null ) { obj.FirstName = update.FirstName; }
             if (update.LastName != null ) { obj.LastName = update.LastName; }
-            if (update.Phone != 0) { obj.Phone = update.Phone; }
-            if (update.Email != null ) { obj.Email = update.Email; }
-            if (update.DateOfBirth != DateTime.Now) { obj.DateOfBirth = DateTime.Parse(update.DateOfBirth.ToString("yyyy-MM-dd")); }
+            if (update.Phone != 0) {
+                string regexPatternPhone = "^[6-9]\\d{9}$";
+                if (!Regex.IsMatch(update.Phone.ToString(), regexPatternPhone))
+                {
+                    res.StatusCode = 400;
+                    res.Message = "Enter Valid Phone Number";
+                    res.Data = null;
+                    return res;
+                }
+                obj.Phone = update.Phone; 
+            }           
+            if (update.Email != null ) {
+                string regexPatternEmail = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
+                if (!Regex.IsMatch(update.Email, regexPatternEmail))
+                {
+                    res.StatusCode = 400;
+                    res.Message = "Enter Valid email";
+                    res.Data = null;
+                    return res;
+                }
+                obj.Email = update.Email; 
+            }            
+            if (update.DateOfBirth.Year <= 2011) {
+                TimeSpan ageTimeSpan = DateTime.Now - update.DateOfBirth;
+                int age = (int)(ageTimeSpan.Days / 365.25);
+                if (age < 12)
+                {
+                    res.StatusCode = 400;
+                    res.Message = "You should be atleast 12 years old";
+                    res.Data = null;
+                    return res;
+                }
+                obj.DateOfBirth = DateTime.Parse(update.DateOfBirth.ToString("yyyy-MM-dd")); 
+            }
+            
             obj.UpdatedAt = DateTime.Now;
-
             _dbContext.SaveChanges();
             res.Data = obj;
             res.StatusCode = 200;
@@ -396,7 +427,6 @@ namespace ChatApplication.Services
             response.Message = "List Of Users";
             return response;
         }
-
         public Response UploadImage(FileUpload upload, string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -441,7 +471,6 @@ namespace ChatApplication.Services
             response.Message = "File Uploaded Successfully..";
             return response;
         }
-
 
     }
 }
