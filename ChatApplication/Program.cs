@@ -10,6 +10,7 @@ using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using NETCore.MailKit.Core;
 using ChatApplication.Hubs;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,9 +78,16 @@ app.UseHttpsRedirection();
 
 app.UseCors("CorsPolicy");
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    //File assests = new File()
+    FileProvider = new PhysicalFileProvider(
+              Path.Combine(builder.Environment.ContentRootPath, "wwwroot")),
+    RequestPath = "/wwwroot"
+});
+
 app.UseAuthentication();
 app.UseRouting();
-
 
 app.MapHub<ChatHub>("/ChatHub");
 app.UseAuthorization();
