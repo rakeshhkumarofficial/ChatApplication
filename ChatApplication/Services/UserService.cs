@@ -348,7 +348,7 @@ namespace ChatApplication.Services
             var uniqueFileName = $"{fileName}_{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}{fileExt}";
             string imagePath = Path.Combine("wwwroot", "Images", uniqueFileName);
             string path = Path.Combine(Directory.GetCurrentDirectory(), imagePath);           
-            obj.PathToProfilePic = path;
+            obj.PathToProfilePic = imagePath;
             var filestream = System.IO.File.Create(path);
             upload.File.CopyTo(filestream);
             filestream.Close();
@@ -453,7 +453,7 @@ namespace ChatApplication.Services
             var filestream = System.IO.File.Create(path);
             upload.File.CopyTo(filestream);
             filestream.Close();
-            response.Data = path;
+            response.Data = imagePath;
             response.StatusCode = 200;
             response.Message = "Image Uploaded Successfully..";
             return response;
@@ -473,13 +473,13 @@ namespace ChatApplication.Services
             var fileName = Path.GetFileNameWithoutExtension(upload.File.FileName);
             var fileExt = Path.GetExtension(upload.File.FileName);
             var uniqueFileName = $"{fileName}_{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}{fileExt}";
-            string imagePath = Path.Combine("wwwroot", "Files", uniqueFileName);
-            string path = Path.Combine(Directory.GetCurrentDirectory(), imagePath);
+            string filePath = Path.Combine("wwwroot", "Files", uniqueFileName);
+            string path = Path.Combine(Directory.GetCurrentDirectory(), filePath);
 
             var filestream = System.IO.File.Create(path);
             upload.File.CopyTo(filestream);
             filestream.Close();
-            response.Data = path;
+            response.Data = filePath;
             response.StatusCode = 200;
             response.Message = "File Uploaded Successfully..";
             return response;
