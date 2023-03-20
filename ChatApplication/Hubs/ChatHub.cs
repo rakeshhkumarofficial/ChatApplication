@@ -98,6 +98,7 @@ namespace ChatApplication.Hubs
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
+            var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
             var obj = ConnectionId.Where(x => x.Key != email).Select(x => x.Key);
 
             List<object> names = new List<object>();
@@ -105,7 +106,11 @@ namespace ChatApplication.Hubs
             foreach (var obj2 in obj)
             {
                 var usernames = _dbContext.Users.Where(x => x.Email == obj2).Select(x => x).First();
-                names.Add(usernames.FirstName + " " + usernames.LastName);              
+                bool ChatExists = _dbContext.UserChatMaps.Where(x => (x.SenderId == User.UserId && x.ReceiverId == usernames.UserId) || (x.SenderId == usernames.UserId && x.ReceiverId == User.UserId)).Any();
+                if (ChatExists)
+                {
+                    names.Add(usernames.FirstName + " " + usernames.LastName);
+                }
             }
             if (names.Count > 0)
             {

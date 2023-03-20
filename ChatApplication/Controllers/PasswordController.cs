@@ -53,7 +53,7 @@ namespace ChatApplication.Controllers
                 res.Data = null;
                 return Ok(res);
             }         
-            string urldirect = "http://192.180.0.29:4200/resetpassword/";
+            string urldirect = fp.URL;
             UriBuilder builder = new UriBuilder(urldirect);
 
             if (!IsUserExists)
