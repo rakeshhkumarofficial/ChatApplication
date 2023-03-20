@@ -121,6 +121,8 @@ namespace ChatApplication.Hubs
             }
 
         }
+
+        // Get Chatlist Users
         public async Task GetChatList()
         {
             var httpContext = Context.GetHttpContext();
@@ -138,6 +140,8 @@ namespace ChatApplication.Hubs
             }
             await Clients.Caller.SendAsync("ChatList", chatlist);
         }
+
+        // Load Old Messages
         public async Task LoadMessages(string ReceiverEmail , int page)
         {
             var httpContext = Context.GetHttpContext();
