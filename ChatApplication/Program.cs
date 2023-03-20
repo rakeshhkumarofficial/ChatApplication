@@ -70,8 +70,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 
 
-    app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 
 app.UseHttpsRedirection();
@@ -88,12 +88,8 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseAuthentication();
 app.UseRouting();
-
 app.MapHub<ChatHub>("/ChatHub");
 app.UseAuthorization();
-
-
-
 app.MapControllers();
 
 

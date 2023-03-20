@@ -38,6 +38,8 @@ namespace ChatApplication.Controllers
             
         }
 
+        // ForgetPassword Service
+
         [HttpPost]
         public IActionResult ForgetPassword(ForgetPasswordRequest fp)
         {
@@ -126,6 +128,8 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
+        // Reset Your Password
+
         [HttpPost,Authorize(Roles = "Reset")]
         public IActionResult ResetPassword(ResetPassword reset)
         {
@@ -167,6 +171,8 @@ namespace ChatApplication.Controllers
             _dbContext.SaveChanges();
             return Ok(res);
         }
+
+        // Creating JWT Token for Reset Role
         private string CreateToken(User obj, IConfiguration _configuration)
         {
             List<Claim> claims = new List<Claim>
@@ -184,6 +190,8 @@ namespace ChatApplication.Controllers
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return jwt;
         }
+
+        // Creating PasswordHash for new Password
         private void CreatePasswordHash(string Password, out byte[] PasswordHash, out byte[] PasswordSalt)
         {
             using (var hmac = new HMACSHA512())

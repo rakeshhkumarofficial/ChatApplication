@@ -28,6 +28,8 @@ namespace ChatApplication.Controllers
             _configuration = configuration;
         }
 
+        
+        // SignIn With Google
         [HttpPost]
         public async Task<IActionResult> SignIn(string Token)
         {
@@ -72,6 +74,8 @@ namespace ChatApplication.Controllers
             res.Data = model;
             return Ok(res);
         }
+
+        // Creating JWT Token for Google User
         private string CreateToken(User obj, IConfiguration _configuration)
         {
             List<Claim> claims = new List<Claim>

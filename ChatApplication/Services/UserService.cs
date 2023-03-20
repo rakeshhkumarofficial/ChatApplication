@@ -28,6 +28,8 @@ namespace ChatApplication.Services
             _dbContext = dbContext;
             _configuration = configuration;
         }
+
+        // Register New User
         public Response AddUser(Register user)
         {
             Response response = new Response();
@@ -45,8 +47,8 @@ namespace ChatApplication.Services
                 return response;
             }
             
-            TimeSpan ageTimeSpan = DateTime.Now - user.DateOfBirth;
-            int age = (int)(ageTimeSpan.Days / 365.25);                 
+            TimeSpan ageTime = DateTime.Now - user.DateOfBirth;
+            int age = (int)(ageTime.Days / 365.25);                 
             if (age < 12)
             {
                 response.StatusCode = 400;
@@ -128,6 +130,8 @@ namespace ChatApplication.Services
             return response;
 
         }
+
+        // Encoding Password into PasswordHash using HMACSHA512
         private void CreatePasswordHash(string Password, out byte[] PasswordHash, out byte[] PasswordSalt)
         {
             using (var hmac = new HMACSHA512())
@@ -136,6 +140,8 @@ namespace ChatApplication.Services
                 PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Password));
             }
         }
+
+        // Login User
         public Response Login(Login login, IConfiguration _configuration)
         {
             
@@ -165,6 +171,8 @@ namespace ChatApplication.Services
             response.Message = "Login Successfull";
             return response;
         }
+
+        // Generating JWT Token for Authentication
         private string CreateToken(User obj, IConfiguration _configuration)
         {
             List<Claim> claims = new List<Claim>
@@ -183,6 +191,8 @@ namespace ChatApplication.Services
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return jwt;
         }
+
+        // Verfying the PasswordHash
         private bool VerifyPasswordHash(string Password, byte[] PasswordHash, byte[] PasswordSalt)
         {
             using (var hmac = new HMACSHA512(PasswordSalt))
@@ -190,65 +200,9 @@ namespace ChatApplication.Services
                 byte[] computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Password));
                 return computedHash.SequenceEqual(PasswordHash);
             }
-        }
-        /*
-        public Response GetUser(Guid UserId, string? FirstName, string? LastName, long Phone, int sort, int pageNumber, int records)
-        {
-            var users = _dbContext.Users;
-            var Userquery = _dbContext.Users.AsQueryable();
-            var userlist = from u in Userquery where u.IsDeleted == false select  new { u.UserId,u.FirstName,u.LastName,u.Phone,u.DateOfBirth,u.Email};
-            Response res = new Response();
-            res.StatusCode = 200;
-            res.Message = "User Details";
-            if (UserId == Guid.Empty && FirstName == null && LastName == null && Phone == 0 )
-            {
-                if (sort == -1)
-                {
-                    var sortDesc = from u in Userquery where u.IsDeleted == false orderby u.FirstName descending select new { u.UserId, u.FirstName, u.LastName, u.Phone, u.DateOfBirth, u.Email };
-                    res.Data = sortDesc;
-                    return res;
-                }
-                if (sort == 1)
-                {
-                    var sortAsc = from u in Userquery where u.IsDeleted == false orderby u.FirstName select new { u.UserId, u.FirstName, u.LastName, u.Phone, u.DateOfBirth, u.Email };
-                    res.Data = sortAsc;
-                    return res;
-                }
-                if (pageNumber != 0 && records != 0)
-                {
-                    var pageRecords = (userlist.Skip((pageNumber - 1) * records).Take(records));
-                    res.Data = pageRecords;
-                    if (pageRecords != null)
-                    {
-                        return res;
-                    }
-                }
-                res.Data = userlist;
-                return res;
-            }
-            var obj = from u in Userquery where u.IsDeleted == false && (u.UserId == UserId || UserId == Guid.Empty) && (u.FirstName == FirstName || FirstName == null) && (u.LastName == LastName || LastName == null) && (u.Phone == Phone || Phone == 0) select new { u.UserId, u.FirstName, u.LastName, u.Phone, u.DateOfBirth, u.Email };
-            if (sort == -1)
-            {
-                var sortDesc = from u in obj orderby u.FirstName descending select u;
-                res.Data = sortDesc;
-                return res;
-            }
-            if (sort == 1)
-            {
-                var sortAsc = from u in obj orderby u.FirstName select u;
-                res.Data = sortAsc;
-                return res;
-            }
-            res.Data = obj;
-            int len = obj.Count();
-            if (len == 0)
-            {
-                res.StatusCode = 404;
-                res.Message = "Not Found";
-            }
-            return res;
-        }
-        */
+        }        
+
+        // Updating User Profile
         public Response UpdateUser(UpdateUser update,string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -305,6 +259,8 @@ namespace ChatApplication.Services
             res.Message = "User details updated";
             return res;    
         }
+
+        // Deleting the User Account
         public Response DeleteUser(string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -331,6 +287,8 @@ namespace ChatApplication.Services
             return response;
 
         }
+
+        // Uploading Profile Image of User
         public Response UploadProfileImage(FileUpload upload, string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -359,6 +317,8 @@ namespace ChatApplication.Services
             return response;
 
         }
+
+        // Changing the Password of User
         public Response ChangePassword(ChangePassword pass, string email)
         {
             Response response = new Response();
@@ -406,6 +366,8 @@ namespace ChatApplication.Services
             response.Message = "Password Changed Successfully";
             return response;
         }
+
+        // Searching the Available Users in Database
         public Response Search(string Name, string email)
         {    
             Response response = new Response();
@@ -432,6 +394,8 @@ namespace ChatApplication.Services
             response.Message = "List Of Users";
             return response;
         }
+
+        // Sending Image using SendMessage
         public Response UploadImage(FileUpload upload, string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
@@ -458,6 +422,8 @@ namespace ChatApplication.Services
             response.Message = "Image Uploaded Successfully..";
             return response;
         }
+
+        // Sending File using SendMessage
         public Response UploadFile(FileUpload upload, string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);

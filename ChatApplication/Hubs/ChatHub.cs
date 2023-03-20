@@ -3,24 +3,21 @@ using ChatApplication.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Linq;
 using System.Security.Claims;
-using static Azure.Core.HttpHeader;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace ChatApplication.Hubs
 {
    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ChatHub : Hub
-    {
-        
+    {       
         private readonly ChatAPIDbContext _dbContext;
         private static Dictionary<string, string> ConnectionId = new Dictionary<string, string>();
         public ChatHub(ChatAPIDbContext dbContext)
         {
             _dbContext = dbContext;
         }        
+
+        // Create connectionId of login User
         public override Task OnConnectedAsync()
         {
             var httpContext = Context.GetHttpContext();
@@ -29,6 +26,8 @@ namespace ChatApplication.Hubs
             ConnectionId.Add(email, Context.ConnectionId);      
             return base.OnConnectedAsync();
         }        
+
+        // Create Chat With Available Users
         public async Task CreateChat(Guid Receiver)
         {
             var httpContext = Context.GetHttpContext();
@@ -59,6 +58,8 @@ namespace ChatApplication.Hubs
             var username = _dbContext.Users.Where(x => x.UserId == obj.ReceiverId).Select(x => x.FirstName).First();
             await Clients.Caller.SendAsync("ChatCreatedWith", username);
         }              
+       
+        // Sendmessage to Chatlist Users
         public async Task SendMessage(string receiver,string message)
         {
             var ReceiverId = new Guid(receiver);
@@ -88,11 +89,10 @@ namespace ChatApplication.Hubs
                 var connId = ConnectionId.Where(x => x.Key == recievermail.Email).Select(x => x.Value);
                 await Clients.Clients(connId).SendAsync("ReceiveMessage", Sender, message);
                 await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
-            }
-
-           
-
+            }        
         }           
+
+        // Get Online Users
         public async Task GetOnlineUsers()
         {
             var httpContext = Context.GetHttpContext();
@@ -117,6 +117,8 @@ namespace ChatApplication.Hubs
             }
 
         }        
+
+        // Get ChatList of logined User
         public async Task GetChats()
         {
             var httpContext = Context.GetHttpContext();
@@ -135,6 +137,8 @@ namespace ChatApplication.Hubs
             }
             await Clients.Caller.SendAsync("ChatList", chatlist);
         }
+
+        // Load Messages of a Particular User
         public async Task LoadMessages(Guid ReceiverId)
         {
             var httpContext = Context.GetHttpContext();
@@ -150,6 +154,8 @@ namespace ChatApplication.Hubs
             await Clients.Caller.SendAsync("OldMessages", messagelist);
 
         } 
+
+        // Remove ConnectionId when User Logout
         public override Task OnDisconnectedAsync(Exception? exception)
         {
             var httpContext = Context.GetHttpContext();

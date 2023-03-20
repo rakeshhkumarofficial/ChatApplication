@@ -24,7 +24,8 @@ namespace ChatApplication.Controllers
             _dbContext = dbContext;
             _configuration = configuration;
         }
-        
+
+        // Register New User
         [HttpPost]
         public IActionResult Register(Register user)
         {
@@ -34,6 +35,7 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
+        // Login User
         [HttpPost]
         public IActionResult Login(Login login)
         {
@@ -42,6 +44,7 @@ namespace ChatApplication.Controllers
             return Ok(token);
         }
 
+        // Update Profile of User
         [HttpPost, Authorize(Roles = "Login")]
         public IActionResult UpdateProfile(UpdateUser update)
         {
@@ -51,6 +54,8 @@ namespace ChatApplication.Controllers
             var res = service.UpdateUser(update,email);
             return Ok(res);
         }
+
+        // Delete Account of User
 
         [HttpDelete, Authorize(Roles = "Login")]
         public IActionResult DeleteAccount()
@@ -62,6 +67,7 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
+        // Upload Files and Images 
         [HttpPost, Authorize(Roles = "Login")]
         public IActionResult FileUpload([FromForm] FileUpload upload , int type)
         {
@@ -86,6 +92,7 @@ namespace ChatApplication.Controllers
             return Ok("Type is wrong");
         }
 
+        // Change Password of the User
         [HttpPost, Authorize(Roles = "Login")]
         public IActionResult ChangePassword(ChangePassword pass)
         {
@@ -96,6 +103,7 @@ namespace ChatApplication.Controllers
             return Ok(res);
         }
 
+        // Search Available Users
         [HttpGet, Authorize(Roles = "Login")]
         public IActionResult Search(string Name)
         {
@@ -104,7 +112,6 @@ namespace ChatApplication.Controllers
             IUserService service = new UserService(_dbContext, _configuration);
             var res = service.Search(Name,email);
             return Ok(res);
-        }
-        
+        }      
     }
 }
