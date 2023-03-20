@@ -14,11 +14,7 @@ namespace ChatApplication.Data
 
         // ForgetPassword Table
         public DbSet<ForgetPassword> ForgetPasswords { get; set; }
-
-        // ChatMessage Table
-        public DbSet<ChatMessage> ChatMessages { get; set; }
-
-        // ChatMap Table - one on one chat Mapping
-        public DbSet<ChatMap> UserChatMaps { get; set;}      
+        public DbSet<UserMapping> UserMappings { get; set; }
+        public DbSet<Message> ChatMessage { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿/*using System.ComponentModel.DataAnnotations;
 
 namespace ChatApplication.Models
 {
@@ -10,3 +10,4 @@ namespace ChatApplication.Models
         public Guid ReceiverId { get; set; }
     }
 }
+*/

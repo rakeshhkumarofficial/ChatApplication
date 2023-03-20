@@ -17,6 +17,7 @@ namespace ChatApplication.Hubs
             _dbContext = dbContext;
         }        
 
+        
         // Create connectionId of login User
         public override Task OnConnectedAsync()
         {
@@ -25,88 +26,86 @@ namespace ChatApplication.Hubs
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;    
             ConnectionId.Add(email, Context.ConnectionId);      
             return base.OnConnectedAsync();
-        }        
+        }
 
-        // Create Chat With Available Users
-        public async Task CreateChat(Guid Receiver)
+        // Create Chat with Available Users
+        public async Task CreateChat(string ReceiverEmail)
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            bool isExists = _dbContext.UserChatMaps.Where(x => x.SenderId == User.UserId && x.ReceiverId == Receiver).Any();
+            bool isExists = _dbContext.UserMappings.Where(x => x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail).Any();
             if (!isExists)
             {
-                var chatmap = new ChatMap()
+                var mapWithReceiver = new UserMapping()
                 {
                     MapId = Guid.NewGuid(),
-                    SenderId = User.UserId,
-                    ReceiverId = Receiver
+                    SenderEmail = email,
+                    ReceiverEmail = ReceiverEmail
                 };
-                _dbContext.UserChatMaps.Add(chatmap);
+                _dbContext.UserMappings.Add(mapWithReceiver);
 
-                var chatmap2 = new ChatMap()
+                var mapWithSender = new UserMapping()
                 {
                     MapId = Guid.NewGuid(),
-                    SenderId = Receiver,
-                    ReceiverId = User.UserId
+                    SenderEmail = ReceiverEmail,
+                    ReceiverEmail = email
                 };
-                _dbContext.UserChatMaps.Add(chatmap2);
+                _dbContext.UserMappings.Add(mapWithSender);
                 _dbContext.SaveChanges();
             }
-            var obj = _dbContext.UserChatMaps.Where(x => x.SenderId == User.UserId && x.ReceiverId == Receiver).Select(x => x).FirstOrDefault();
-            var username = _dbContext.Users.Where(x => x.UserId == obj.ReceiverId).Select(x => x.FirstName).First();
+            var receiver = _dbContext.UserMappings.Where(x => x.SenderEmail == User.Email && x.ReceiverEmail == ReceiverEmail).Select(x => x).FirstOrDefault();
+            var username = _dbContext.Users.Where(x => x.Email == receiver.ReceiverEmail).Select(x => x.FirstName).First();
             await Clients.Caller.SendAsync("ChatCreatedWith", username);
-        }              
-       
-        // Sendmessage to Chatlist Users
-        public async Task SendMessage(string receiver,string message)
+        }
+
+        // Send Message To ChatList Users
+        public async Task SendMessage(string ReceiverEmail, string message)
         {
-            var ReceiverId = new Guid(receiver);
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            bool isExists = _dbContext.UserChatMaps.Where(x => (x.SenderId == User.UserId && x.ReceiverId == ReceiverId) || (x.SenderId == ReceiverId && x.ReceiverId == User.UserId)).Any();
+            bool isExists = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email)).Any();
             if (!isExists)
             {
                 await Clients.Caller.SendAsync("ReceiveMessage", "First Create chat with this User ");
             }
             if (isExists)
             {
-                var msg = new ChatMessage()
+                var msg = new Message()
                 {
                     MessageId = Guid.NewGuid(),
-                    SenderId = User.UserId,
-                    ReceiverId = ReceiverId,
-                    Message = message,
+                    SenderEmail = email,
+                    ReceiverEmail = ReceiverEmail,
+                    Messages = message,
                     TimeStamp = DateTime.UtcNow
                 };
                 var Sender = User.FirstName;
-                _dbContext.ChatMessages.Add(msg);
+                _dbContext.ChatMessage.Add(msg);
                 _dbContext.SaveChanges();
-                var recievermail = _dbContext.Users.FirstOrDefault(u => u.UserId == ReceiverId);
-                var connId = ConnectionId.Where(x => x.Key == recievermail.Email).Select(x => x.Value);
+                var connId = ConnectionId.Where(x => x.Key == ReceiverEmail).Select(x => x.Value);
                 await Clients.Clients(connId).SendAsync("ReceiveMessage", Sender, message);
                 await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
-            }        
-        }           
+            }
+        }
 
-        // Get Online Users
+        // Get Online Users from ChatList
         public async Task GetOnlineUsers()
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            var obj = ConnectionId.Where(x => x.Key != email).Select(x => x.Key);
+            var emails = ConnectionId.Where(x => x.Key != email).Select(x => x.Key);
 
             List<object> names = new List<object>();
-                    
-            foreach (var obj2 in obj)
+
+            foreach (var e in emails)
             {
-                var usernames = _dbContext.Users.Where(x => x.Email == obj2).Select(x => x).First();
-                bool ChatExists = _dbContext.UserChatMaps.Where(x => (x.SenderId == User.UserId && x.ReceiverId == usernames.UserId) || (x.SenderId == usernames.UserId && x.ReceiverId == User.UserId)).Any();
+                var usernames = _dbContext.Users.Where(x => x.Email == e).Select(x => x).First();
+                bool ChatExists = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == e) || (x.SenderEmail == e && x.ReceiverEmail == email)).Any();
                 if (ChatExists)
                 {
                     names.Add(usernames.FirstName + " " + usernames.LastName);
@@ -121,44 +120,39 @@ namespace ChatApplication.Hubs
                 await Clients.Caller.SendAsync("OnlineUsersList", "No one is online");
             }
 
-        }        
-
-        // Get ChatList of logined User
-        public async Task GetChats()
+        }
+        public async Task GetChatList()
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
-            var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            var ReceiverIds = _dbContext.UserChatMaps.Where(u => u.SenderId == User.UserId).Select(u => u.ReceiverId).ToList();
+            var ReceiverEmails = _dbContext.UserMappings.Where(u => u.SenderEmail == email).Select(u => u.ReceiverEmail).ToList();
             List<string> chatlist = new List<string>();
-            if (ReceiverIds != null)
-            {               
-                foreach (var receiverid in ReceiverIds)
+            if (ReceiverEmails != null)
+            {
+                foreach (var e in ReceiverEmails)
                 {
-                    var obj = _dbContext.Users.Where(u => u.UserId == receiverid).Select(u => u).First();
-                    chatlist.Add(obj.FirstName+" "+obj.LastName);
-                }            
+                    var usernames = _dbContext.Users.Where(u => u.Email == e).Select(u => u).First();
+                    chatlist.Add(usernames.FirstName + " " + usernames.LastName);
+                }
             }
             await Clients.Caller.SendAsync("ChatList", chatlist);
         }
-
-        // Load Messages of a Particular User
-        public async Task LoadMessages(Guid ReceiverId)
+        public async Task LoadMessages(string ReceiverEmail , int page)
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            var msgs = _dbContext.ChatMessages.Where(x => x.SenderId == User.UserId && x.ReceiverId == ReceiverId || x.SenderId == ReceiverId && x.ReceiverId == User.UserId);
-            var orderedmsg = msgs.OrderByDescending(m => m.TimeStamp).Select(x => new {x.SenderId , x.Message , x.TimeStamp});
-            var messages = orderedmsg.Take(30);
-            var usersname = _dbContext.Users.Where(u => u.UserId == User.UserId || u.UserId == ReceiverId).Select(u => new { u.FirstName, u.LastName }).First();
+            var messages = _dbContext.ChatMessage.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
+            var orderedmsgs = messages.OrderByDescending(m => m.TimeStamp).Select(x => x);     
+            var msgslist = (orderedmsgs.Skip((page - 1) * 10).Take(10));
+            var usersname = _dbContext.Users.Where(u => u.Email == email || u.Email == ReceiverEmail).Select(u => new { u.FirstName, u.LastName }).First();
 
-            var messagelist = new { usersname , messages };
+            var messagelist = new { usersname, messages };
             await Clients.Caller.SendAsync("OldMessages", messagelist);
 
-        } 
+        }
 
         // Remove ConnectionId when User Logout
         public override Task OnDisconnectedAsync(Exception? exception)
@@ -168,6 +162,8 @@ namespace ChatApplication.Hubs
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             ConnectionId.Remove(email);
             return base.OnDisconnectedAsync(exception);
-        }              
+        }  
+        
+
     }
 }

@@ -22,47 +22,6 @@ namespace ChatApplication.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ChatApplication.Models.ChatMap", b =>
-                {
-                    b.Property<Guid>("MapId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ReceiverId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("MapId");
-
-                    b.ToTable("UserChatMaps");
-                });
-
-            modelBuilder.Entity("ChatApplication.Models.ChatMessage", b =>
-                {
-                    b.Property<Guid>("MessageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ReceiverId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("MessageId");
-
-                    b.ToTable("ChatMessages");
-                });
-
             modelBuilder.Entity("ChatApplication.Models.ForgetPassword", b =>
                 {
                     b.Property<Guid>("Id")
@@ -83,6 +42,32 @@ namespace ChatApplication.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ForgetPasswords");
+                });
+
+            modelBuilder.Entity("ChatApplication.Models.Message", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Messages")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReceiverEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MessageId");
+
+                    b.ToTable("ChatMessage");
                 });
 
             modelBuilder.Entity("ChatApplication.Models.User", b =>
@@ -127,6 +112,25 @@ namespace ChatApplication.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ChatApplication.Models.UserMapping", b =>
+                {
+                    b.Property<Guid>("MapId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReceiverEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("MapId");
+
+                    b.ToTable("UserMappings");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿/*using System.ComponentModel.DataAnnotations;
 
 namespace ChatApplication.Models
 {
@@ -12,3 +12,4 @@ namespace ChatApplication.Models
         public DateTime TimeStamp { get; set; } 
     }
 }
+*/
