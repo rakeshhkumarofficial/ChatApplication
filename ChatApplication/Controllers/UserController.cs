@@ -19,18 +19,18 @@ namespace ChatApplication.Controllers
     {
         private readonly ChatAPIDbContext _dbContext;
         public readonly IConfiguration _configuration;
+        private readonly IUserService service;
         public UserController(ChatAPIDbContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _configuration = configuration;
+            service = new UserService(_dbContext, _configuration);
         }
 
         // Register New User
         [HttpPost]
         public IActionResult Register(Register user)
-        {
-            
-            IUserService service = new UserService(_dbContext,_configuration);
+        {           
             var res = service.AddUser(user);
             return Ok(res);
         }
@@ -39,7 +39,6 @@ namespace ChatApplication.Controllers
         [HttpPost]
         public IActionResult Login(Login login)
         {
-            IUserService service = new UserService(_dbContext, _configuration);
             var token = service.Login(login, _configuration);
             return Ok(token);
         }
@@ -50,7 +49,6 @@ namespace ChatApplication.Controllers
         {
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
-            IUserService service = new UserService(_dbContext,_configuration);
             var res = service.UpdateUser(update,email);
             return Ok(res);
         }
@@ -62,7 +60,6 @@ namespace ChatApplication.Controllers
         {
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
-            IUserService service = new UserService(_dbContext, _configuration);
             var res = service.DeleteUser(email);
             return Ok(res);
         }
@@ -73,7 +70,6 @@ namespace ChatApplication.Controllers
         {
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
-            IUserService service = new UserService(_dbContext, _configuration);
             if (type == 1) {
                 var res = service.UploadProfileImage(upload, email);
                
@@ -98,7 +94,6 @@ namespace ChatApplication.Controllers
         {
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
-            IUserService service = new UserService(_dbContext, _configuration);
             var res = service.ChangePassword(pass,email);
             return Ok(res);
         }
@@ -109,7 +104,6 @@ namespace ChatApplication.Controllers
         {
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
-            IUserService service = new UserService(_dbContext, _configuration);
             var res = service.Search(Name,email);
             return Ok(res);
         }      

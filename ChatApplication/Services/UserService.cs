@@ -216,8 +216,8 @@ namespace ChatApplication.Services
                 return res;
             }
             if (update.FirstName != null ) { obj.FirstName = update.FirstName; }
-            if (update.LastName != null ) { obj.LastName = update.LastName; }
-            if (update.Phone != 0) {
+            if (update.LastName != null ) { obj.LastName = update.LastName; }          
+            if (update.Phone != -1 || update.Phone == 0) {
                 string regexPatternPhone = "^[6-9]\\d{9}$";
                 if (!Regex.IsMatch(update.Phone.ToString(), regexPatternPhone))
                 {
@@ -239,7 +239,7 @@ namespace ChatApplication.Services
                 }
                 obj.Email = update.Email; 
             }            
-            if (update.DateOfBirth.Year <= 2011) {
+            if (update.DateOfBirth != DateTime.MinValue && update.DateOfBirth != DateTime.Now) {
                 TimeSpan ageTimeSpan = DateTime.Now - update.DateOfBirth;
                 int age = (int)(ageTimeSpan.Days / 365.25);
                 if (age < 12)
@@ -322,14 +322,6 @@ namespace ChatApplication.Services
         public Response ChangePassword(ChangePassword pass, string email)
         {
             Response response = new Response();
-            string regexPatternPassword = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
-            if (!Regex.IsMatch(pass.NewPassword, regexPatternPassword))
-            {
-                response.StatusCode = 400;
-                response.Message = "Password should be of 8 length contains atleast one Upper, lower alphabet and one special symbol ";
-                response.Data = null;
-                return response;
-            }
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
             int len = obj == null ? 0 : 1;
             
@@ -345,6 +337,15 @@ namespace ChatApplication.Services
                 response.Data = null;
                 response.StatusCode = 404;
                 response.Message = "OldPassword is Wrong";
+                return response;
+            }
+
+            string regexPatternPassword = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
+            if (!Regex.IsMatch(pass.NewPassword, regexPatternPassword))
+            {
+                response.StatusCode = 400;
+                response.Message = "Password should be of 8 length contains atleast one Upper, lower alphabet and one special symbol ";
+                response.Data = null;
                 return response;
             }
 

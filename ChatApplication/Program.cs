@@ -80,7 +80,6 @@ app.UseCors("CorsPolicy");
 
 app.UseStaticFiles(new StaticFileOptions
 {
-    //File assests = new File()
     FileProvider = new PhysicalFileProvider(
               Path.Combine(builder.Environment.ContentRootPath, "wwwroot")),
     RequestPath = "/wwwroot"

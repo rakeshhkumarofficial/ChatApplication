@@ -6,8 +6,8 @@ namespace ChatApplication.Models
     {
         public string? FirstName { get; set; } 
         public string? LastName { get; set; } 
-        public string? Email { get; set; } 
-        public long Phone { get; set; } = 0;
-        public DateTime DateOfBirth { get; set; } = DateTime.Now;
+        public string? Email { get; set; }
+        public long Phone { get; set; } = -1;
+        public DateTime DateOfBirth { get; set; } = DateTime.MinValue;
     }
 }
