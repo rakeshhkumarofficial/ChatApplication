@@ -23,7 +23,8 @@ namespace ChatApplication.Hubs
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;    
-            ConnectionId.Add(email, Context.ConnectionId);      
+            ConnectionId.Add(email, Context.ConnectionId);
+            Clients.All.SendAsync("refreshChats");
             return base.OnConnectedAsync();
         }
 
@@ -41,7 +42,8 @@ namespace ChatApplication.Hubs
                 {
                     MapId = Guid.NewGuid(),
                     SenderEmail = email,
-                    ReceiverEmail = ReceiverEmail
+                    ReceiverEmail = ReceiverEmail,
+                    LastUpdated = DateTime.Now
                 };
                 _dbContext.UserMappings.Add(mapWithReceiver);
 
@@ -49,7 +51,8 @@ namespace ChatApplication.Hubs
                 {
                     MapId = Guid.NewGuid(),
                     SenderEmail = ReceiverEmail,
-                    ReceiverEmail = email
+                    ReceiverEmail = email,
+                    LastUpdated = DateTime.Now
                 };
                 _dbContext.UserMappings.Add(mapWithSender);
                 _dbContext.SaveChanges();
@@ -83,8 +86,15 @@ namespace ChatApplication.Hubs
                 };
                 var Sender = User.FirstName;
                 _dbContext.ChatMessage.Add(msg);
+                var updateMap = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
+                foreach (var map in updateMap)
+                {
+                   map.LastUpdated = DateTime.Now;
+                }
+                        
                 _dbContext.SaveChanges();
                 var connId = ConnectionId.Where(x => x.Key == ReceiverEmail).Select(x => x.Value);
+                await Clients.All.SendAsync("refreshChats");
                 await Clients.Clients(connId).SendAsync("ReceiveMessage", Sender, message);
                 await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
             }
@@ -127,7 +137,8 @@ namespace ChatApplication.Hubs
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
-            var ReceiverEmails = _dbContext.UserMappings.Where(u => u.SenderEmail == email).Select(u => u.ReceiverEmail).ToList();
+            var Receivers = _dbContext.UserMappings.Where(u => u.SenderEmail == email);
+            var ReceiverEmails = Receivers.OrderByDescending(x=>x.LastUpdated).Select(x=>x.ReceiverEmail).ToList();
             List<string> chatlist = new List<string>();
             if (ReceiverEmails != null)
             {

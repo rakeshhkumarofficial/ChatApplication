@@ -8,5 +8,6 @@ namespace ChatApplication.Models
         public Guid MapId { get; set; }
         public string SenderEmail { get; set; }
         public string ReceiverEmail { get; set; }
+        public DateTime LastUpdated { get; set;} = DateTime.Now;
     }
 }
