@@ -115,9 +115,23 @@ namespace ChatApplication.Services
         // Login User
         public Response Login(Login login, IConfiguration _configuration)
         {
-            
-            var obj = _dbContext.Users.Where(u=>u.Email == login.Email).FirstOrDefault();
             Response response = new Response();
+            string regexPatternEmail = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
+            if (!Regex.IsMatch(login.Email, regexPatternEmail))
+            {
+                response.StatusCode = 400;
+                response.Message = "Enter Valid email";
+                return response;
+            }
+            if(login.Password=="" || login.Password == null)
+            {
+                response.StatusCode = 400;
+                response.Message = "Please Enter the Password";
+                return response;
+            }
+
+            var obj = _dbContext.Users.Where(u=>u.Email == login.Email).FirstOrDefault();
+            
             if (obj == null)
             {
                 response.Data = null;

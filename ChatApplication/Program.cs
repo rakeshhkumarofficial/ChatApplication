@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
-
 using System.Text;
 using NETCore.MailKit.Core;
 using ChatApplication.Hubs;

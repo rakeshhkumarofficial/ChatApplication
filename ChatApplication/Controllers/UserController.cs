@@ -4,6 +4,7 @@ using ChatApplication.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace ChatApplication.Controllers
 {
@@ -14,18 +15,23 @@ namespace ChatApplication.Controllers
         private readonly ChatAPIDbContext _dbContext;
         public readonly IConfiguration _configuration;
         private readonly IUserService service;
-        public UserController(ChatAPIDbContext dbContext, IConfiguration configuration)
+        private readonly ILogger<UserController> _logger;
+
+       
+        public UserController(ChatAPIDbContext dbContext, IConfiguration configuration, ILogger<UserController> logger)
         {
             _dbContext = dbContext;
             _configuration = configuration;
+            _logger = logger;
             service = new UserService(_dbContext, _configuration);
         }
 
         // Register New User
         [HttpPost]
         public IActionResult Register(Register user)
-        {           
-            var res = service.AddUser(user);
+        {
+            _logger.LogInformation("Executing method {MethodName}", nameof(Register));
+            var res = service.AddUser(user);        
             return Ok(res);
         }
 
@@ -33,6 +39,7 @@ namespace ChatApplication.Controllers
         [HttpPost]
         public IActionResult Login(Login login)
         {
+            _logger.LogInformation("Executing method {MethodName}", nameof(Login));
             var token = service.Login(login, _configuration);
             return Ok(token);
         }
@@ -41,6 +48,7 @@ namespace ChatApplication.Controllers
         [HttpPost, Authorize(Roles = "Login")]
         public IActionResult Update(UpdateUser update)
         {
+            _logger.LogInformation("Executing method {MethodName}", nameof(Update));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.UpdateUser(update,email);
@@ -52,6 +60,7 @@ namespace ChatApplication.Controllers
         [HttpDelete, Authorize(Roles = "Login")]
         public IActionResult Delete()
         {
+            _logger.LogInformation("Executing method {MethodName}", nameof(Delete));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.DeleteUser(email);
@@ -62,6 +71,7 @@ namespace ChatApplication.Controllers
         [HttpPost, Authorize(Roles = "Login")]
         public IActionResult ChangePassword(ChangePassword pass)
         {
+            _logger.LogInformation("Executing method {MethodName}", nameof(ChangePassword));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.ChangePassword(pass,email);
@@ -72,6 +82,7 @@ namespace ChatApplication.Controllers
         [HttpGet, Authorize(Roles = "Login")]
         public IActionResult Search(string Name)
         {
+            _logger.LogInformation("Executing method {MethodName}", nameof(Search));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.Search(Name,email);

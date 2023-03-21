@@ -13,19 +13,23 @@ namespace ChatApplication.Controllers
     {
         private readonly ChatAPIDbContext _dbContext;
         private readonly IFileService service;
-        public FileController(ChatAPIDbContext dbContext)
+        private readonly ILogger<FileController> _logger;
+        public FileController(ChatAPIDbContext dbContext, ILogger<FileController> logger)
         {
+            _logger = logger;
             _dbContext = dbContext;
-            service = new FileService(_dbContext);
+            service = new FileService(_dbContext);        
         }
 
         [HttpPost, Authorize(Roles = "Login")]
         public IActionResult FileUpload([FromForm] FileUpload upload, int type)
         {
+            _logger.LogInformation("Executing method {MethodName}", nameof(FileUpload));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.FileUpload(upload, email, type);
-            return Ok(res);         
+            return Ok(res);
+            
         }
     }
 }
