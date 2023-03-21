@@ -1,27 +1,8 @@
 ﻿using ChatApplication.Data;
 using ChatApplication.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography;
-using System.Web;
-
-using NETCore.MailKit.Core;
-using NETCore.MailKit.Infrastructure.Internal;
-
-using System.Net.Mail;
-using System.Net;
-using static System.Net.WebRequestMethods;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
-using System.Data;
-using Newtonsoft.Json.Linq;
-using Azure;
-using System.Text.RegularExpressions;
-using Response = ChatApplication.Models.Response;
 using ChatApplication.Services;
 
 namespace ChatApplication.Controllers

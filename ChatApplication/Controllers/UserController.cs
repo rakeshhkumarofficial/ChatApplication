@@ -1,15 +1,9 @@
 ﻿using ChatApplication.Data;
 using ChatApplication.Models;
 using ChatApplication.Services;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using System.Data;
 
 namespace ChatApplication.Controllers
 {

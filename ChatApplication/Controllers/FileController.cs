@@ -2,9 +2,7 @@
 using ChatApplication.Models;
 using ChatApplication.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Data;
 using System.Security.Claims;
 
 namespace ChatApplication.Controllers

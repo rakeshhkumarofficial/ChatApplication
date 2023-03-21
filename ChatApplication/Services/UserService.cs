@@ -1,20 +1,10 @@
-﻿using Azure;
-using ChatApplication.Data;
+﻿using ChatApplication.Data;
 using ChatApplication.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics;
-using System.Formats.Tar;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
-using static Google.Apis.Requests.BatchRequest;
 using Response = ChatApplication.Models.Response;
 
 namespace ChatApplication.Services
@@ -33,57 +23,50 @@ namespace ChatApplication.Services
         public Response AddUser(Register user)
         {
             Response response = new Response();
-            if (user.FirstName == null) {
+            response.Data = null;
+            response.StatusCode = 409;
+            response.Message = "Email Already Exists";
+            if (user.FirstName == null || user.FirstName=="") 
+            {
                 response.StatusCode = 400;
                 response.Message = "FirstName cannot be empty";
-                response.Data = null;
                 return response;
             }
-            if (user.LastName == null)
+            if (user.LastName == null || user.LastName=="")
             {
                 response.StatusCode = 400;
                 response.Message = "LastName cannot be empty";
-                response.Data = null;
                 return response;
-            }
-            
-            TimeSpan ageTime = DateTime.Now - user.DateOfBirth;
-            int age = (int)(ageTime.Days / 365.25);                 
-            if (age < 12)
-            {
-                response.StatusCode = 400;
-                response.Message = "You should be atleast 12 years old";
-                response.Data = null;
-                return response;
-            }
-            
+            }                    
             string regexPatternEmail = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
             if (!Regex.IsMatch(user.Email, regexPatternEmail))
             {
                 response.StatusCode = 400;
                 response.Message = "Enter Valid email";
-                response.Data = null;
                 return response;
             }
-            
-            string regexPatternPassword = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
-            if (!Regex.IsMatch(user.Password, regexPatternPassword))
-            {
-                response.StatusCode = 400;
-                response.Message = "\"Password should contains 8 Characters atleast one Upper, lower alphabet and one special symbol";
-                response.Data = null;
-                return response;
-            }
-            
             string regexPatternPhone = "^[6-9]\\d{9}$";
             if (!Regex.IsMatch(user.Phone.ToString(), regexPatternPhone))
             {
                 response.StatusCode = 400;
                 response.Message = "Enter Valid Phone Number";
-                response.Data = null;
                 return response;
             }
-            
+            string regexPatternPassword = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
+            if (!Regex.IsMatch(user.Password, regexPatternPassword))
+            {
+                response.StatusCode = 400;
+                response.Message = "Password should contains 8 Characters atleast one Upper, lower alphabet and one special symbol";
+                return response;
+            }         
+            TimeSpan ageTime = DateTime.Now - user.DateOfBirth;
+            int age = (int)(ageTime.Days / 365.25);
+            if (age < 12)
+            {
+                response.StatusCode = 400;
+                response.Message = "You should be atleast 12 years old";
+                return response;
+            }
             bool IsUserExists = _dbContext.Users.Where(u=>u.Email == user.Email).Any();         
             if (!IsUserExists)
             {
@@ -104,15 +87,7 @@ namespace ChatApplication.Services
                  _dbContext.Users.Add(obj);
                  _dbContext.SaveChanges();
                  string token = CreateToken(obj, _configuration);
-                 int len = obj == null ? 0 : 1;
-                
-                 if (len == 0)
-                 {
-                    response.Data = null;
-                    response.StatusCode = 404;
-                    response.Message = "cannot Add The User";
-                    return response;
-                 }
+                 int len = obj == null ? 0 : 1;                             
                  if (len == 1)
                  {
                     DataModel dm = new DataModel();
@@ -121,14 +96,10 @@ namespace ChatApplication.Services
                     response.Data = dm;                   
                     response.StatusCode = 200;
                     response.Message = "User Added Successfully";
-                 }
-                 return response;
+                    return response;
+                }                
             }
-            response.Data = null;
-            response.StatusCode = 409;
-            response.Message = "Email Already Exists";
             return response;
-
         }
 
         // Encoding Password into PasswordHash using HMACSHA512
