@@ -27,9 +27,24 @@ namespace ChatApplication.Services
         }
         public Response ForgetPassword(ForgetPasswordRequest fp)
         {
+            Response res = new Response();
+            if (fp.Email == null || fp.Email == "") {
+                res.StatusCode = 400;
+                res.Message = "Please Enter The Email";
+                res.Data = null;
+                return res;
+            }
+            string regexPatternEmail = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
+            if (!Regex.IsMatch(fp.Email, regexPatternEmail))
+            {
+                res.StatusCode = 400;
+                res.Message = "Enter Valid email";
+                return res;
+            }
+
             var user = _dbContext.Users.FirstOrDefault(x => x.Email == fp.Email);
             bool IsUserExists = _dbContext.ForgetPasswords.Where(u => u.Email == fp.Email).Any();
-            Response res = new Response();
+            
             if (user == null)
             {
                 res.StatusCode = 404;
