@@ -45,7 +45,7 @@ namespace ChatApplication.Controllers
         }
 
         // Update Profile of User
-        [HttpPost, Authorize(Roles = "Login")]
+        [HttpPut, Authorize(Roles = "Login")]
         public IActionResult Update(UpdateUser update)
         {
             _logger.LogInformation("Executing method {MethodName}", nameof(Update));
@@ -68,7 +68,7 @@ namespace ChatApplication.Controllers
         }
 
         // Change Password of the User
-        [HttpPost, Authorize(Roles = "Login")]
+        [HttpPut, Authorize(Roles = "Login")]
         public IActionResult ChangePassword(ChangePassword pass)
         {
             _logger.LogInformation("Executing method {MethodName}", nameof(ChangePassword));
