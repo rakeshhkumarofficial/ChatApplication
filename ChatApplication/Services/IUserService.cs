@@ -8,9 +8,6 @@ namespace ChatApplication.Services
         public Response Login(Login login, IConfiguration _configuration);    
         public Response UpdateUser(UpdateUser update,string email);
         public Response DeleteUser(string email);
-        public Response UploadProfileImage(FileUpload upload, string email);
-        public Response UploadImage(FileUpload upload, string email);
-        public Response UploadFile(FileUpload upload, string email);
         public Response ChangePassword(ChangePassword pass,string email);
         public Response Search(string Name,string email);
     }

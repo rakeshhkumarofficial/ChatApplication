@@ -288,36 +288,6 @@ namespace ChatApplication.Services
 
         }
 
-        // Uploading Profile Image of User
-        public Response UploadProfileImage(FileUpload upload, string email)
-        {
-            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
-            int len = obj == null ? 0 : 1;
-            Response response = new Response();
-            if (len == 0)
-            {
-                response.Data = null;
-                response.StatusCode = 404;
-                response.Message = "User Not Found";
-                return response;
-            }
-            var fileName = Path.GetFileNameWithoutExtension(upload.File.FileName);
-            var fileExt = Path.GetExtension(upload.File.FileName);
-            var uniqueFileName = $"{fileName}_{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}{fileExt}";
-            string imagePath = Path.Combine("wwwroot", "Images", uniqueFileName);
-            string path = Path.Combine(Directory.GetCurrentDirectory(), imagePath);           
-            obj.PathToProfilePic = imagePath;
-            var filestream = System.IO.File.Create(path);
-            upload.File.CopyTo(filestream);
-            filestream.Close();
-            _dbContext.SaveChanges();
-            response.Data = obj;
-            response.StatusCode = 200;
-            response.Message = "Image Uploaded Successfully..";
-            return response;
-
-        }
-
         // Changing the Password of User
         public Response ChangePassword(ChangePassword pass, string email)
         {
@@ -396,60 +366,6 @@ namespace ChatApplication.Services
             return response;
         }
 
-        // Sending Image using SendMessage
-        public Response UploadImage(FileUpload upload, string email)
-        {
-            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
-            int len = obj == null ? 0 : 1;
-            Response response = new Response();
-            if (len == 0)
-            {
-                response.Data = null;
-                response.StatusCode = 404;
-                response.Message = "User Not Found";
-                return response;
-            }
-            var fileName = Path.GetFileNameWithoutExtension(upload.File.FileName);
-            var fileExt = Path.GetExtension(upload.File.FileName);
-            var uniqueFileName = $"{fileName}_{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}{fileExt}";
-            string imagePath = Path.Combine("wwwroot", "Images", uniqueFileName);
-            string path = Path.Combine(Directory.GetCurrentDirectory(), imagePath);
-
-            var filestream = System.IO.File.Create(path);
-            upload.File.CopyTo(filestream);
-            filestream.Close();
-            response.Data = imagePath;
-            response.StatusCode = 200;
-            response.Message = "Image Uploaded Successfully..";
-            return response;
-        }
-
-        // Sending File using SendMessage
-        public Response UploadFile(FileUpload upload, string email)
-        {
-            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
-            int len = obj == null ? 0 : 1;
-            Response response = new Response();
-            if (len == 0)
-            {
-                response.Data = null;
-                response.StatusCode = 404;
-                response.Message = "User Not Found";
-                return response;
-            }
-            var fileName = Path.GetFileNameWithoutExtension(upload.File.FileName);
-            var fileExt = Path.GetExtension(upload.File.FileName);
-            var uniqueFileName = $"{fileName}_{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}{fileExt}";
-            string filePath = Path.Combine("wwwroot", "Files", uniqueFileName);
-            string path = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-
-            var filestream = System.IO.File.Create(path);
-            upload.File.CopyTo(filestream);
-            filestream.Close();
-            response.Data = filePath;
-            response.StatusCode = 200;
-            response.Message = "File Uploaded Successfully..";
-            return response;
-        }
+        
     }
 }

@@ -16,8 +16,7 @@ namespace ChatApplication.Hubs
         {
             _dbContext = dbContext;
         }        
-
-        
+       
         // Create connectionId of login User
         public override Task OnConnectedAsync()
         {
@@ -168,6 +167,5 @@ namespace ChatApplication.Hubs
             return base.OnDisconnectedAsync(exception);
         }  
         
-
     }
 }

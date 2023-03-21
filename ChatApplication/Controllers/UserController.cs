@@ -45,7 +45,7 @@ namespace ChatApplication.Controllers
 
         // Update Profile of User
         [HttpPost, Authorize(Roles = "Login")]
-        public IActionResult UpdateProfile(UpdateUser update)
+        public IActionResult Update(UpdateUser update)
         {
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
@@ -56,36 +56,12 @@ namespace ChatApplication.Controllers
         // Delete Account of User
 
         [HttpDelete, Authorize(Roles = "Login")]
-        public IActionResult DeleteAccount()
+        public IActionResult Delete()
         {
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.DeleteUser(email);
             return Ok(res);
-        }
-
-        // Upload Files and Images 
-        [HttpPost, Authorize(Roles = "Login")]
-        public IActionResult FileUpload([FromForm] FileUpload upload , int type)
-        {
-            var user = HttpContext.User;
-            var email = user.FindFirst(ClaimTypes.Name)?.Value;
-            if (type == 1) {
-                var res = service.UploadProfileImage(upload, email);
-               
-                return Ok(res);
-            }
-            if(type == 2)
-            {
-                var res = service.UploadImage(upload, email);
-                return Ok(res);
-            }
-            if(type == 3)
-            {
-                var res = service.UploadFile(upload, email);
-                return Ok(res);
-            }
-            return Ok("Type is wrong");
         }
 
         // Change Password of the User
