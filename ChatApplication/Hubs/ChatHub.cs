@@ -149,7 +149,7 @@ namespace ChatApplication.Hubs
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
             var messages = _dbContext.ChatMessage.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
             var orderedmsgs = messages.OrderByDescending(m => m.TimeStamp).Select(x => x);     
-            var msgslist = (orderedmsgs.Skip((page - 1) * 10).Take(10));
+            var msgslist = (orderedmsgs.Skip((page - 1) * 30).Take(30));
             var usersname = _dbContext.Users.Where(u => u.Email == email || u.Email == ReceiverEmail).Select(u => new { u.FirstName, u.LastName }).First();
 
             var messagelist = new { usersname, messages };

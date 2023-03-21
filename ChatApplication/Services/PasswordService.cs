@@ -148,7 +148,7 @@ namespace ChatApplication.Services
 
             if (fpUser == null || fpUser.ExpiresAt < DateTime.Now)
             {
-                res.Data = dbuser;
+                res.Data = null;
                 res.StatusCode = 404;
                 res.Message="Link Expired";
                 return res;
@@ -156,7 +156,7 @@ namespace ChatApplication.Services
 
             if (reset.NewPassword != reset.ConfirmPassword)
             {
-                res.Data = dbuser;
+                res.Data = null;
                 res.StatusCode = 404;
                 res.Message = "Confirm Password does not match with the New Password";
                 return res;
@@ -167,7 +167,6 @@ namespace ChatApplication.Services
             dbuser.PasswordSalt = PasswordSalt;
             dbuser.UpdatedAt = DateTime.Now;
             _dbContext.SaveChanges();
-
 
             res.Data = dbuser;
             res.StatusCode = 200;

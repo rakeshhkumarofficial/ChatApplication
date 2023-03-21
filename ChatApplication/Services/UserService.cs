@@ -336,7 +336,6 @@ namespace ChatApplication.Services
             response.Message = "List Of Users";
             return response;
         }
-
-        
+       
     }
 }
