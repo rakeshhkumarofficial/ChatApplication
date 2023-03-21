@@ -10,21 +10,23 @@ namespace ChatApplication.Controllers
 {
     [Route("api/[controller]/[Action]")]
     [ApiController]
-    public class Google : ControllerBase
+    public class GoogleController : ControllerBase
     {
         private readonly ChatAPIDbContext _dbContext;
         public readonly IConfiguration _configuration;
-        public Google(ChatAPIDbContext dbContext, IConfiguration configuration)
+        private readonly ILogger<GoogleController> _logger;
+        public GoogleController(ChatAPIDbContext dbContext, IConfiguration configuration, ILogger<GoogleController> logger)
         {
             _dbContext = dbContext;
             _configuration = configuration;
+            _logger = logger;
         }
-
-        
+      
         // SignIn With Google
         [HttpPost]
         public async Task<IActionResult> SignIn(string Token)
         {
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(SignIn));
             var googleUser = await GoogleJsonWebSignature.ValidateAsync(Token);
             bool IsUserExists = _dbContext.Users.Where(u => u.Email == googleUser.Email).Any();
             DataModel model = new DataModel();

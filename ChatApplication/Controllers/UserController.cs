@@ -30,7 +30,7 @@ namespace ChatApplication.Controllers
         [HttpPost]
         public IActionResult Register(Register user)
         {
-            _logger.LogInformation("Executing method {MethodName}", nameof(Register));
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(Register));
             var res = service.AddUser(user);        
             return Ok(res);
         }
@@ -39,7 +39,7 @@ namespace ChatApplication.Controllers
         [HttpPost]
         public IActionResult Login(Login login)
         {
-            _logger.LogInformation("Executing method {MethodName}", nameof(Login));
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(Login));
             var token = service.Login(login, _configuration);
             return Ok(token);
         }
@@ -48,7 +48,7 @@ namespace ChatApplication.Controllers
         [HttpPut, Authorize(Roles = "Login")]
         public IActionResult Update(UpdateUser update)
         {
-            _logger.LogInformation("Executing method {MethodName}", nameof(Update));
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(Update));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.UpdateUser(update,email);
@@ -60,7 +60,7 @@ namespace ChatApplication.Controllers
         [HttpDelete, Authorize(Roles = "Login")]
         public IActionResult Delete()
         {
-            _logger.LogInformation("Executing method {MethodName}", nameof(Delete));
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(Delete));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.DeleteUser(email);
@@ -71,7 +71,7 @@ namespace ChatApplication.Controllers
         [HttpPut, Authorize(Roles = "Login")]
         public IActionResult ChangePassword(ChangePassword pass)
         {
-            _logger.LogInformation("Executing method {MethodName}", nameof(ChangePassword));
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(ChangePassword));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.ChangePassword(pass,email);
@@ -82,7 +82,7 @@ namespace ChatApplication.Controllers
         [HttpGet, Authorize(Roles = "Login")]
         public IActionResult Search(string Name)
         {
-            _logger.LogInformation("Executing method {MethodName}", nameof(Search));
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(Search));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.Search(Name,email);

@@ -24,7 +24,7 @@ namespace ChatApplication.Controllers
         [HttpPost, Authorize(Roles = "Login")]
         public IActionResult FileUpload([FromForm] FileUpload upload, int type)
         {
-            _logger.LogInformation("Executing method {MethodName}", nameof(FileUpload));
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(FileUpload));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.FileUpload(upload, email, type);

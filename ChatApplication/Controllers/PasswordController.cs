@@ -14,10 +14,12 @@ namespace ChatApplication.Controllers
         private readonly ChatAPIDbContext _dbContext;
         public readonly IConfiguration _configuration; 
         private readonly IPasswordService _passwordService;
-        public PasswordController(ChatAPIDbContext dbContext, IConfiguration configuration)
+        private readonly ILogger<PasswordController> _logger;
+        public PasswordController(ChatAPIDbContext dbContext, IConfiguration configuration, ILogger<PasswordController> logger)
         {
             _dbContext = dbContext;
             _configuration = configuration;
+            _logger = logger;
             _passwordService = new PasswordService(_dbContext,_configuration);
             
         }
@@ -25,6 +27,7 @@ namespace ChatApplication.Controllers
         [HttpPost]
         public IActionResult ForgetPassword(ForgetPasswordRequest fp)
         {
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(ForgetPassword));
             var res = _passwordService.ForgetPassword(fp);
             return Ok(res);
         }
@@ -32,11 +35,11 @@ namespace ChatApplication.Controllers
         [HttpPost, Authorize(Roles = "Reset")]
         public IActionResult ResetPassword(ResetPassword reset)
         {
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(ResetPassword));
             var user = HttpContext.User;
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = _passwordService.ResetPassword(reset, email);
             return Ok(res);
         }
-
      }
 }
