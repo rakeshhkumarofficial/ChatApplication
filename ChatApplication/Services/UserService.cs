@@ -333,23 +333,22 @@ namespace ChatApplication.Services
             
             if(users == null || users.Count() == 0) {
                 response.Data = null;
-                response.StatusCode = 404;
-                response.Message = "No User found with this Name";
+                response.StatusCode = 200;
+                response.Message = "User Not Found";
                 return response; 
             }
             var ExceptloginedUser = users.Where(u => u.UserId != obj.UserId).Select(u => new { u.UserId, u.FirstName, u.LastName, u.Email });
             if (ExceptloginedUser.Count() == 0)
             {
                 response.Data = null;
-                response.StatusCode = 404;
-                response.Message = "No User found with this Name";
+                response.StatusCode = 200;
+                response.Message = "User Not Found";
                 return response;
             }
             response.Data = ExceptloginedUser;
             response.StatusCode = 200;
             response.Message = "List Of Users";
             return response;
-        }
-       
+        }      
     }
 }

@@ -22,7 +22,12 @@ namespace ChatApplication.Hubs
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
-            var email = user1.FindFirst(ClaimTypes.Name)?.Value;    
+            var email = user1.FindFirst(ClaimTypes.Name)?.Value; 
+            if(ConnectionId.Keys.Contains(email))
+            {
+                Clients.Caller.SendAsync("AlreadyLogined");
+                return base.OnConnectedAsync();
+            }
             ConnectionId.Add(email, Context.ConnectionId);
             Clients.All.SendAsync("refreshChats");
             return base.OnConnectedAsync();
