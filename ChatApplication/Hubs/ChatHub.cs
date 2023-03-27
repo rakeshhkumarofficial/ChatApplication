@@ -90,10 +90,10 @@ namespace ChatApplication.Hubs
             bool isExists = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email)).Any();
             if (!isExists)
             {
-                await Clients.Caller.SendAsync("ReceiveMessage", "First Create chat with this User ");
                 response.Data = null;
                 response.StatusCode = 200;
                 response.Message = "First Create Chat with this User";
+                await Clients.Caller.SendAsync("ReceiveMessage", response);
                 return response;
             }
             var msg = new Message()
@@ -115,11 +115,11 @@ namespace ChatApplication.Hubs
             _dbContext.SaveChanges();
             var connId = ConnectionId.Where(x => x.Key == ReceiverEmail).Select(x => x.Value);
             await Clients.All.SendAsync("refreshChats");
-            await Clients.Clients(connId).SendAsync("ReceiveMessage", Sender, message);
-            await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
             response.Data = msg;
             response.StatusCode = 200;
             response.Message = "Message Sent";
+            await Clients.Clients(connId).SendAsync("ReceiveMessage", response);
+            await Clients.Caller.SendAsync("ReceiveMessage", response); 
             return response;
 
         }
@@ -147,17 +147,17 @@ namespace ChatApplication.Hubs
             }
             if (names.Count > 0)
             {
-                await Clients.Caller.SendAsync("OnlineUsersList", names);
                 response.Data = names;
                 response.StatusCode = 200;
                 response.Message = "Online Users";
+                await Clients.Caller.SendAsync("OnlineUsersList", response);
                 return response;
             }
 
-            await Clients.Caller.SendAsync("OnlineUsersList", "No one is online");
             response.Data = null;
             response.StatusCode = 200;
             response.Message = "No one is online";
+            await Clients.Caller.SendAsync("OnlineUsersList", response);
             return response;
 
         }
@@ -180,10 +180,11 @@ namespace ChatApplication.Hubs
                     chatlist.Add(usernames.FirstName + " " + usernames.LastName);
                 }
             }
-            await Clients.Caller.SendAsync("ChatList", chatlist);
             response.Data = chatlist;
             response.StatusCode = 200;
             response.Message = "Chat List";
+            await Clients.Caller.SendAsync("ChatList", response);
+          
             return response;
         }
 
@@ -201,10 +202,11 @@ namespace ChatApplication.Hubs
             var usersname = _dbContext.Users.Where(u => u.Email == email || u.Email == ReceiverEmail).Select(u => new { u.FirstName, u.LastName }).First();
 
             var messagelist = new { usersname, messages };
-            await Clients.Caller.SendAsync("OldMessages", messagelist);
             response.StatusCode = 200;
             response.Message = "old Messages";
             response.Data = messagelist;
+            await Clients.Caller.SendAsync("OldMessages", response);
+            
             return response;
 
         }
