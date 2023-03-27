@@ -121,7 +121,6 @@ namespace ChatApplication.Hubs
             await Clients.Clients(connId).SendAsync("ReceiveMessage", response);
             await Clients.Caller.SendAsync("ReceiveMessage", response); 
             return response;
-
         }
 
         // Get Online Users from ChatList
