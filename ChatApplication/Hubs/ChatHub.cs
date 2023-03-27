@@ -198,15 +198,14 @@ namespace ChatApplication.Hubs
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
             var messages = _dbContext.ChatMessage.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
             var orderedmsgs = messages.OrderByDescending(m => m.TimeStamp).Select(x => x);     
-            var msgslist = (orderedmsgs.Skip((page - 1) * 30).Take(30));
-            //var usersname = _dbContext.Users.Where(u => u.Email == email || u.Email == ReceiverEmail).Select(u => new { u.FirstName, u.LastName }).First();
+            var msgslist = (orderedmsgs.Skip((1 - 1) * 1).Take(1));
+            var usersname = _dbContext.Users.Where(u => u.Email == email || u.Email == ReceiverEmail).Select(u => new { u.FirstName, u.LastName }).First();
 
-            //var messagelist = new { usersname, messages };
+            var messagelist = new { usersname, messages };
             response.StatusCode = 200;
             response.Message = "old Messages";
-            response.Data = msgslist;
-            await Clients.Caller.SendAsync("OldMessages", response);
-            
+            response.Data = messagelist;
+            await Clients.Caller.SendAsync("OldMessages", response);   
             return response;
 
         }
