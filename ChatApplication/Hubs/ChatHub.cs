@@ -34,22 +34,25 @@ namespace ChatApplication.Hubs
         }
 
         // Create Chat with Available Users
-        public async Task CreateChat(string ReceiverEmail)
+        public async Task<Response> CreateChat(string ReceiverEmail)
         {
+            Response response = new Response();
+            var mapWithReceiver = new UserMapping();
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
             bool isExists = _dbContext.UserMappings.Where(x => x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail).Any();
+           
             if (!isExists)
             {
-                var mapWithReceiver = new UserMapping()
-                {
-                    MapId = Guid.NewGuid(),
-                    SenderEmail = email,
-                    ReceiverEmail = ReceiverEmail,
-                    LastUpdated = DateTime.Now
-                };
+                //var mapWithReceiver = new UserMapping()
+
+                mapWithReceiver.MapId = Guid.NewGuid();
+                mapWithReceiver.SenderEmail = email;
+                mapWithReceiver.ReceiverEmail = ReceiverEmail;
+                mapWithReceiver.LastUpdated = DateTime.Now;
+                
                 _dbContext.UserMappings.Add(mapWithReceiver);
 
                 var mapWithSender = new UserMapping()
@@ -61,15 +64,25 @@ namespace ChatApplication.Hubs
                 };
                 _dbContext.UserMappings.Add(mapWithSender);
                 _dbContext.SaveChanges();
+                await Clients.Caller.SendAsync("ChatCreatedWith", mapWithReceiver);
+                response.Data = mapWithReceiver;
+                response.StatusCode = 200;
+                response.Message = "Chat Created";
+                return response;
             }
-            var receiver = _dbContext.UserMappings.Where(x => x.SenderEmail == User.Email && x.ReceiverEmail == ReceiverEmail).Select(x => x).FirstOrDefault();
-            var username = _dbContext.Users.Where(x => x.Email == receiver.ReceiverEmail).Select(x => x.FirstName).First();
-            await Clients.Caller.SendAsync("ChatCreatedWith", username);
+            var obj = _dbContext.UserMappings.Where(x => x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail).Select(x => x).FirstOrDefault();
+            await Clients.Caller.SendAsync("ChatCreatedWith", obj);
+            response.Data = obj;
+            response.StatusCode = 200;
+            response.Message = "Chat Already Created";
+            return response;               
+            
         }
 
         // Send Message To ChatList Users
-        public async Task SendMessage(string ReceiverEmail, string message)
+        public async Task<Response> SendMessage(string ReceiverEmail, string message)
         {
+            Response response = new Response();
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
@@ -78,36 +91,43 @@ namespace ChatApplication.Hubs
             if (!isExists)
             {
                 await Clients.Caller.SendAsync("ReceiveMessage", "First Create chat with this User ");
+                response.Data = null;
+                response.StatusCode = 200;
+                response.Message = "First Create Chat with this User";
+                return response;
             }
-            if (isExists)
+            var msg = new Message()
             {
-                var msg = new Message()
-                {
-                    MessageId = Guid.NewGuid(),
-                    SenderEmail = email,
-                    ReceiverEmail = ReceiverEmail,
-                    Messages = message,
-                    TimeStamp = DateTime.UtcNow
-                };
-                var Sender = User.FirstName;
-                _dbContext.ChatMessage.Add(msg);
-                var updateMap = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
-                foreach (var map in updateMap)
-                {
-                   map.LastUpdated = DateTime.Now;
-                }
-                        
-                _dbContext.SaveChanges();
-                var connId = ConnectionId.Where(x => x.Key == ReceiverEmail).Select(x => x.Value);
-                await Clients.All.SendAsync("refreshChats");
-                await Clients.Clients(connId).SendAsync("ReceiveMessage", Sender, message);
-                await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
+                MessageId = Guid.NewGuid(),
+                SenderEmail = email,
+                ReceiverEmail = ReceiverEmail,
+                Messages = message,
+                TimeStamp = DateTime.UtcNow
+            };
+            var Sender = User.FirstName;
+            _dbContext.ChatMessage.Add(msg);
+            var updateMap = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
+            foreach (var map in updateMap)
+            {
+                map.LastUpdated = DateTime.Now;
             }
+
+            _dbContext.SaveChanges();
+            var connId = ConnectionId.Where(x => x.Key == ReceiverEmail).Select(x => x.Value);
+            await Clients.All.SendAsync("refreshChats");
+            await Clients.Clients(connId).SendAsync("ReceiveMessage", Sender, message);
+            await Clients.Caller.SendAsync("ReceiveMessage", Sender, message);
+            response.Data = msg;
+            response.StatusCode = 200;
+            response.Message = "Message Sent";
+            return response;
+
         }
 
         // Get Online Users from ChatList
-        public async Task GetOnlineUsers()
+        public async Task<Response> GetOnlineUsers()
         {
+            Response response = new Response();
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
@@ -128,17 +148,24 @@ namespace ChatApplication.Hubs
             if (names.Count > 0)
             {
                 await Clients.Caller.SendAsync("OnlineUsersList", names);
+                response.Data = names;
+                response.StatusCode = 200;
+                response.Message = "Online Users";
+                return response;
             }
-            if (names.Count == 0)
-            {
-                await Clients.Caller.SendAsync("OnlineUsersList", "No one is online");
-            }
+
+            await Clients.Caller.SendAsync("OnlineUsersList", "No one is online");
+            response.Data = null;
+            response.StatusCode = 200;
+            response.Message = "No one is online";
+            return response;
 
         }
 
         // Get Chatlist Users
-        public async Task GetChatList()
+        public async Task<Response> GetChatList()
         {
+            Response response = new Response();
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
@@ -154,11 +181,16 @@ namespace ChatApplication.Hubs
                 }
             }
             await Clients.Caller.SendAsync("ChatList", chatlist);
+            response.Data = chatlist;
+            response.StatusCode = 200;
+            response.Message = "Chat List";
+            return response;
         }
 
         // Load Old Messages
-        public async Task LoadMessages(string ReceiverEmail , int page)
+        public async Task<Response> LoadMessages(string ReceiverEmail , int page)
         {
+            Response response = new Response();
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
@@ -170,6 +202,10 @@ namespace ChatApplication.Hubs
 
             var messagelist = new { usersname, messages };
             await Clients.Caller.SendAsync("OldMessages", messagelist);
+            response.StatusCode = 200;
+            response.Message = "old Messages";
+            response.Data = messagelist;
+            return response;
 
         }
 
