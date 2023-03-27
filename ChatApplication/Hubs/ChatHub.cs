@@ -64,10 +64,11 @@ namespace ChatApplication.Hubs
                 };
                 _dbContext.UserMappings.Add(mapWithSender);
                 _dbContext.SaveChanges();
-                await Clients.Caller.SendAsync("ChatCreatedWith", mapWithReceiver);
                 response.Data = mapWithReceiver;
                 response.StatusCode = 200;
                 response.Message = "Chat Created";
+                await Clients.Caller.SendAsync("ChatCreatedWith", response);
+                
                 return response;
             }
             var obj = _dbContext.UserMappings.Where(x => x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail).Select(x => x).FirstOrDefault();
