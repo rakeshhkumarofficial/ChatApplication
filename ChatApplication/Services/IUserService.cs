@@ -10,5 +10,6 @@ namespace ChatApplication.Services
         public Response DeleteUser(string email);
         public Response ChangePassword(ChangePassword pass,string email);
         public Response Search(string Name,string email);
+        public Response GetUser(string email);
     }
 }

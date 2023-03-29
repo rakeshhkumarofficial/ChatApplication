@@ -50,6 +50,9 @@ namespace ChatApplication.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("MessageType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Messages")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

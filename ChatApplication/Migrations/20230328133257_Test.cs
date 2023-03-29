@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChatApplication.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class Test : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,6 +19,7 @@ namespace ChatApplication.Migrations
                     SenderEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ReceiverEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Messages = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MessageType = table.Column<int>(type: "int", nullable: false),
                     TimeStamp = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -46,7 +47,8 @@ namespace ChatApplication.Migrations
                 {
                     MapId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     SenderEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ReceiverEmail = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ReceiverEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastUpdated = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

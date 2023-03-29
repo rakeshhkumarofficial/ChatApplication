@@ -87,6 +87,15 @@ namespace ChatApplication.Controllers
             var email = user.FindFirst(ClaimTypes.Name)?.Value;
             var res = service.Search(Name,email);
             return Ok(res);
-        }      
+        }
+        [HttpGet, Authorize(Roles = "Login")]
+        public IActionResult GetUser()
+        {
+            _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(GetUser));
+            var user = HttpContext.User;
+            var email = user.FindFirst(ClaimTypes.Name)?.Value;
+            var res = service.GetUser(email);
+            return Ok(res);
+        }
     }
 }

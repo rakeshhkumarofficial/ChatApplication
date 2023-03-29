@@ -22,7 +22,7 @@ namespace ChatApplication.Controllers
         }
 
         [HttpPost, Authorize(Roles = "Login")]
-        public IActionResult FileUpload([FromForm] FileUpload upload, int type)
+        public IActionResult FileUpload([FromForm] FileUpload upload , int type)
         {
             _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(FileUpload));
             var user = HttpContext.User;

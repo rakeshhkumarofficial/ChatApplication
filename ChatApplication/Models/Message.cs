@@ -9,6 +9,7 @@ namespace ChatApplication.Models
         public string SenderEmail { get; set; }
         public string ReceiverEmail { get; set; }
         public string Messages { get; set; }
+        public int MessageType { get; set; } = 1;
         public DateTime TimeStamp { get; set; }
     }
 }

@@ -9,6 +9,6 @@ namespace ChatApplication.Models
         public string? Email { get; set; }
         public long Phone { get; set; }
         public string? Password { get; set; }
-        public DateTime DateOfBirth { get; set; } = DateTime.UtcNow;
+        public DateTime DateOfBirth { get; set; } = DateTime.Now;
     }
 }

@@ -349,6 +349,15 @@ namespace ChatApplication.Services
             response.StatusCode = 200;
             response.Message = "List Of Users";
             return response;
-        }      
+        }
+        public Response GetUser(string email)
+        {
+            var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
+            Response res = new Response();
+            res.StatusCode = 200;
+            res.Message = "User Details";
+            res.Data = obj;
+            return res;
+        }
     }
 }

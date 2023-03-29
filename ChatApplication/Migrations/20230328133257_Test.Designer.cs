@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChatApplication.Migrations
 {
     [DbContext(typeof(ChatAPIDbContext))]
-    [Migration("20230320113214_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20230328133257_Test")]
+    partial class Test
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,6 +52,9 @@ namespace ChatApplication.Migrations
                     b.Property<Guid>("MessageId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MessageType")
+                        .HasColumnType("int");
 
                     b.Property<string>("Messages")
                         .IsRequired()
@@ -122,6 +125,9 @@ namespace ChatApplication.Migrations
                     b.Property<Guid>("MapId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ReceiverEmail")
                         .IsRequired()

@@ -72,16 +72,16 @@ namespace ChatApplication.Hubs
                 return response;
             }
             var obj = _dbContext.UserMappings.Where(x => x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail).Select(x => x).FirstOrDefault();
-            await Clients.Caller.SendAsync("ChatCreatedWith", obj);
             response.Data = obj;
             response.StatusCode = 200;
             response.Message = "Chat Already Created";
+            await Clients.Caller.SendAsync("ChatCreatedWith", response);
             return response;               
             
         }
 
         // Send Message To ChatList Users
-        public async Task<Response> SendMessage(string ReceiverEmail, string message)
+        public async Task<Response> SendMessage(string ReceiverEmail, string message , int messageType)
         {
             Response response = new Response();
             var httpContext = Context.GetHttpContext();
@@ -103,8 +103,16 @@ namespace ChatApplication.Hubs
                 SenderEmail = email,
                 ReceiverEmail = ReceiverEmail,
                 Messages = message,
+                MessageType = 1,
                 TimeStamp = DateTime.UtcNow
             };
+            if(messageType == 2)
+            {
+                msg.MessageType = 2;
+            }
+            if(messageType == 3) {
+                msg.MessageType = 3;
+            }
             var Sender = User.FirstName;
             _dbContext.ChatMessage.Add(msg);
             var updateMap = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
@@ -118,9 +126,10 @@ namespace ChatApplication.Hubs
             await Clients.All.SendAsync("refreshChats");
             response.Data = msg;
             response.StatusCode = 200;
-            response.Message = "Message Sent";
+            response.Message = "Message Received";
             await Clients.Clients(connId).SendAsync("ReceiveMessage", response);
-            await Clients.Caller.SendAsync("ReceiveMessage", response); 
+            response.Message = "Message Sent";
+            await Clients.Caller.SendAsync("ReceiveMessage", response);      
             return response;
         }
 
@@ -153,13 +162,11 @@ namespace ChatApplication.Hubs
                 await Clients.Caller.SendAsync("OnlineUsersList", response);
                 return response;
             }
-
             response.Data = null;
             response.StatusCode = 200;
             response.Message = "No one is online";
             await Clients.Caller.SendAsync("OnlineUsersList", response);
             return response;
-
         }
 
         // Get Chatlist Users
@@ -191,16 +198,28 @@ namespace ChatApplication.Hubs
         // Load Old Messages
         public async Task<Response> LoadMessages(string ReceiverEmail , int page)
         {
+            
+
             Response response = new Response();
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            var messages = _dbContext.ChatMessage.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
-            var orderedmsgs = messages.OrderByDescending(m => m.TimeStamp).Select(x => x);     
-            var msgslist = (orderedmsgs.Skip((1 - 1) * 1).Take(1));
+            var existemail = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email)).Any();
+            if(!existemail)
+            {
+                response.StatusCode = 200;
+                response.Message = "Email Not exists";
+                response.Data = null;
+                await Clients.Caller.SendAsync("OldMessages", response);
+                return response;
+            }
+            var prevMessages = _dbContext.ChatMessage.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
+            var orderedmsgs = prevMessages.OrderByDescending(m => m.TimeStamp).Select(x => x);     
+            var msgslist = (orderedmsgs.Skip((page - 1) * 20).Take(20));
             var usersname = _dbContext.Users.Where(u => u.Email == email || u.Email == ReceiverEmail).Select(u => new { u.FirstName, u.LastName }).First();
 
+            var messages = msgslist.Select(x => x).Reverse();
             var messagelist = new { usersname, messages };
             response.StatusCode = 200;
             response.Message = "old Messages";
