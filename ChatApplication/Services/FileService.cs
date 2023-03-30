@@ -37,7 +37,7 @@ namespace ChatApplication.Services
             string path = Path.Combine(Directory.GetCurrentDirectory(), FilePath);
             if (type == 1)
             {
-                obj.PathToProfilePic = FilePath;
+                obj.ProfilePic = FilePath;
             }
             var filestream = System.IO.File.Create(path);
             upload.File.CopyTo(filestream);

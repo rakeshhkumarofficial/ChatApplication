@@ -37,7 +37,13 @@ namespace ChatApplication.Services
                 response.StatusCode = 400;
                 response.Message = "LastName cannot be empty";
                 return response;
-            }                    
+            }        
+            if( user.Gender != 1 || user.Gender != 2 )
+            {
+                response.StatusCode = 400;
+                response.Message = "Provide the Gender";
+                return response;
+            }
             string regexPatternEmail = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
             if (!Regex.IsMatch(user.Email, regexPatternEmail))
             {
@@ -67,6 +73,8 @@ namespace ChatApplication.Services
                 response.Message = "You should be atleast 12 years old";
                 return response;
             }
+            
+           
             bool IsUserExists = _dbContext.Users.Where(u=>u.Email == user.Email).Any();         
             if (!IsUserExists)
             {
@@ -82,9 +90,20 @@ namespace ChatApplication.Services
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     Phone = user.Phone,
+                    Gender = user.Gender,
+                    ProfilePic = null,
                     DateOfBirth = DateTime.Parse(user.DateOfBirth.ToString("yyyy-MM-dd"))
                  };
-                 _dbContext.Users.Add(obj);
+                
+                 if(user.Gender == 1) {
+                    obj.ProfilePic = "wwwroot\\Images\\BoyImage_20230330065257363.png";
+                 }
+                if (user.Gender == 2)
+                {
+                    obj.ProfilePic = "wwwroot\\Images\\GirlImage_20230330065311896.png";
+                }
+
+                _dbContext.Users.Add(obj);
                  _dbContext.SaveChanges();
                  string token = CreateToken(obj, _configuration);
                  int len = obj == null ? 0 : 1;                             
@@ -353,10 +372,11 @@ namespace ChatApplication.Services
         public Response GetUser(string email)
         {
             var obj = _dbContext.Users.FirstOrDefault(x => x.Email == email);
+            string dateOfBirth = obj.DateOfBirth.ToString("yyyy-MM-dd").Split(" ").First();           
             Response res = new Response();
             res.StatusCode = 200;
             res.Message = "User Details";
-            res.Data = obj;
+            res.Data = new { obj.FirstName , obj.LastName , obj.Email , obj.Phone , dateOfBirth } ;
             return res;
         }
     }

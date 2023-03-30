@@ -40,7 +40,7 @@ namespace ChatApplication.Controllers
                     PasswordHash = null,
                     PasswordSalt = null,
                     Email = googleUser.Email,
-                    PathToProfilePic = null,
+                    ProfilePic = null,
                     DateOfBirth = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,

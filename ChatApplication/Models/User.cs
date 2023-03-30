@@ -10,7 +10,8 @@
         public byte[]? PasswordHash { get; set; }
         public byte[]? PasswordSalt { get; set; }
         public DateTime DateOfBirth { get; set; }
-        public string? PathToProfilePic { get; set; }
+        public int Gender { get; set; } 
+        public string? ProfilePic { get; set; }
         public DateTime? CreatedAt { get; set; } 
         public DateTime? UpdatedAt { get; set; } 
         public bool IsDeleted { get; set; } = false;

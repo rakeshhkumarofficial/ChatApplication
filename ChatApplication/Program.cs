@@ -90,5 +90,4 @@ app.MapHub<ChatHub>("/ChatHub");
 app.UseAuthorization();
 app.MapControllers();
 
-
 app.Run();

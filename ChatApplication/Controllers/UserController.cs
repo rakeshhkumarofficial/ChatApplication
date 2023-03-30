@@ -28,10 +28,10 @@ namespace ChatApplication.Controllers
 
         // Register New User
         [HttpPost]
-        public IActionResult Register(Register user)
+        public IActionResult Register(Register user )
         {
             _logger.LogInformation("\nExecuting method {MethodName}\n", nameof(Register));
-            var res = service.AddUser(user);        
+            var res = service.AddUser(user );        
             return Ok(res);
         }
 
