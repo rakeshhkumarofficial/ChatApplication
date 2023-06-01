@@ -38,12 +38,12 @@ namespace ChatApplication.Services
                 response.Message = "LastName cannot be empty";
                 return response;
             }        
-            if( user.Gender != 1 || user.Gender != 2 )
+            /*if( user.Gender != 1 || user.Gender != 2 )
             {
                 response.StatusCode = 400;
                 response.Message = "Provide the Gender";
                 return response;
-            }
+            }*/
             string regexPatternEmail = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
             if (!Regex.IsMatch(user.Email, regexPatternEmail))
             {
@@ -96,11 +96,11 @@ namespace ChatApplication.Services
                  };
                 
                  if(user.Gender == 1) {
-                    obj.ProfilePic = "wwwroot\\Images\\BoyImage_20230330065257363.png";
+                    obj.ProfilePic = "wwwroot\\Images\\BoyImage.png";
                  }
                 if (user.Gender == 2)
                 {
-                    obj.ProfilePic = "wwwroot\\Images\\GirlImage_20230330065311896.png";
+                    obj.ProfilePic = "wwwroot\\Images\\GirlImage.png";
                 }
 
                 _dbContext.Users.Add(obj);
@@ -356,7 +356,7 @@ namespace ChatApplication.Services
                 response.Message = "User Not Found";
                 return response; 
             }
-            var ExceptloginedUser = users.Where(u => u.UserId != obj.UserId).Select(u => new { u.UserId, u.FirstName, u.LastName, u.Email });
+            var ExceptloginedUser = users.Where(u => u.UserId != obj.UserId).Select(u => new { u.UserId, u.FirstName, u.LastName, u.Email,u.ProfilePic });
             if (ExceptloginedUser.Count() == 0)
             {
                 response.Data = null;
@@ -376,7 +376,7 @@ namespace ChatApplication.Services
             Response res = new Response();
             res.StatusCode = 200;
             res.Message = "User Details";
-            res.Data = new { obj.FirstName , obj.LastName , obj.Email , obj.Phone , dateOfBirth } ;
+            res.Data = new { obj.FirstName , obj.LastName , obj.Email , obj.Phone , dateOfBirth , obj.Gender,obj.ProfilePic} ;
             return res;
         }
     }

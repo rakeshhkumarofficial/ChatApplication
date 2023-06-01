@@ -1,9 +1,13 @@
 ﻿using ChatApplication.Data;
 using ChatApplication.Models;
+using MailKit.Search;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using OpenAI_API.Completions;
+using OpenAI_API;
 using System.Security.Claims;
+using static Azure.Core.HttpHeader;
 
 namespace ChatApplication.Hubs
 {
@@ -22,7 +26,10 @@ namespace ChatApplication.Hubs
         {
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
-            var email = user1.FindFirst(ClaimTypes.Name)?.Value; 
+            var email = user1.FindFirst(ClaimTypes.Name)?.Value;
+            var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
+            User.IsActive = true;
+            _dbContext.SaveChanges();
             /*if(ConnectionId.Keys.Contains(email))
             {
                 Clients.Caller.SendAsync("AlreadyLogined");
@@ -68,8 +75,7 @@ namespace ChatApplication.Hubs
                 response.Data = mapWithReceiver;
                 response.StatusCode = 200;
                 response.Message = "Chat Created";
-                await Clients.Caller.SendAsync("ChatCreatedWith", response);
-                
+                await Clients.Caller.SendAsync("ChatCreatedWith", response);      
                 return response;
             }
             var obj = _dbContext.UserMappings.Where(x => x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail).Select(x => x).FirstOrDefault();
@@ -98,6 +104,7 @@ namespace ChatApplication.Hubs
                 await Clients.Caller.SendAsync("ReceiveMessage", response);
                 return response;
             }
+
             var msg = new Message()
             {
                 MessageId = Guid.NewGuid(),
@@ -107,6 +114,69 @@ namespace ChatApplication.Hubs
                 MessageType = 1,
                 TimeStamp = DateTime.UtcNow
             };
+            if (ReceiverEmail == "chat@gmail.com")
+            {
+                if (messageType == 2 || messageType==3)
+                {
+                    msg.Messages = "Do not support Images and pdf";
+                    response.Data = msg;
+                    response.StatusCode = 200;
+                    response.Message = "Error Message";
+                    await Clients.Caller.SendAsync("ReceiveMessage", response);
+                    return response;
+                }
+                
+                // OpenAI API key
+                string APIKey = "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";
+                string answer = string.Empty;
+
+                // Create an instance of the OpenAIAPI class with the API key
+                var openai = new OpenAIAPI(APIKey);
+
+                // Create a new CompletionRequest object with the input prompt and other parameters
+                CompletionRequest completion = new CompletionRequest();
+                completion.Prompt = message;
+                completion.Model = OpenAI_API.Models.Model.DavinciText;
+                completion.MaxTokens = 500;
+
+                // Call the CreateCompletionAsync method of the openai.Completions object to send the API request
+                var result = openai.Completions.CreateCompletionAsync(completion);
+
+                // Extract the response text from the CompletionResponse object and assign it to the 'answer' variable
+                foreach (var item in result.Result.Completions)
+                {
+                    answer = item.Text;
+                }
+                var SenderBot = User.FirstName;
+                _dbContext.ChatMessage.Add(msg);
+                var msgbot = new Message()
+                {
+                    MessageId = Guid.NewGuid(),
+                    SenderEmail = ReceiverEmail,
+                    ReceiverEmail = email,
+                    Messages = answer,
+                    MessageType = 1,
+                    TimeStamp = DateTime.UtcNow
+                };
+                _dbContext.ChatMessage.Add(msgbot);
+                // await SendMessage(email, answer, 1);
+                var updateMapBot = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
+                foreach (var map in updateMapBot)
+                {
+                    map.LastUpdated = DateTime.Now;
+                }
+
+                _dbContext.SaveChanges();
+                var connIdBot = ConnectionId.Where(x => x.Key == ReceiverEmail).Select(x => x.Value);
+                await Clients.All.SendAsync("refreshChats");
+                response.Data = msg;
+                response.StatusCode = 200;
+                response.Message = "Message Received";
+                await Clients.Clients(connIdBot).SendAsync("ReceiveMessage", response);
+                response.Message = "Message Sent";
+                await Clients.Caller.SendAsync("ReceiveMessage", response);
+                return response;
+            }
             if(messageType == 2)
             {
                 msg.MessageType = 2;
@@ -148,11 +218,11 @@ namespace ChatApplication.Hubs
 
             foreach (var e in emails)
             {
-                var usernames = _dbContext.Users.Where(x => x.Email == e).Select(x => x).First();
+                var usernames = _dbContext.Users.Where(x => x.Email == e).Select(x => new { x.FirstName, x.LastName, x.Email }).First();
                 bool ChatExists = _dbContext.UserMappings.Where(x => (x.SenderEmail == email && x.ReceiverEmail == e) || (x.SenderEmail == e && x.ReceiverEmail == email)).Any();
                 if (ChatExists)
                 {
-                    names.Add(usernames.FirstName + " " + usernames.LastName);
+                    names.Add(usernames);
                 }
             }
             if (names.Count > 0)
@@ -179,20 +249,21 @@ namespace ChatApplication.Hubs
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
             var Receivers = _dbContext.UserMappings.Where(u => u.SenderEmail == email);
             var ReceiverEmails = Receivers.OrderByDescending(x=>x.LastUpdated).Select(x=>x.ReceiverEmail).ToList();
-            List<string> chatlist = new List<string>();
+            List<object> chatlist = new List<object>();
             if (ReceiverEmails != null)
             {
                 foreach (var e in ReceiverEmails)
                 {
-                    var usernames = _dbContext.Users.Where(u => u.Email == e).Select(u => u).First();
-                    chatlist.Add(usernames.FirstName + " " + usernames.LastName);
+                    var usernames = _dbContext.Users.Where(u => u.Email == e).Select(u => new { u.FirstName, u.LastName, u.ProfilePic , u.Gender,u.Phone,u.Email, u.IsActive}).First();
+                    chatlist.Add(usernames);
                 }
             }
+          
+
             response.Data = chatlist;
             response.StatusCode = 200;
             response.Message = "Chat List";
             await Clients.Caller.SendAsync("ChatList", response);
-          
             return response;
         }
 
@@ -218,7 +289,7 @@ namespace ChatApplication.Hubs
             var prevMessages = _dbContext.ChatMessage.Where(x => (x.SenderEmail == email && x.ReceiverEmail == ReceiverEmail) || (x.SenderEmail == ReceiverEmail && x.ReceiverEmail == email));
             var orderedmsgs = prevMessages.OrderByDescending(m => m.TimeStamp).Select(x => x);     
             var msgslist = (orderedmsgs.Skip((page - 1) * 20).Take(20));
-            var usersname = _dbContext.Users.Where(u => u.Email == email || u.Email == ReceiverEmail).Select(u => new { u.FirstName, u.LastName }).First();
+            var usersname = _dbContext.Users.Where(u => u.Email == email || u.Email == ReceiverEmail).Select(u => new { u.FirstName, u.LastName,u.Email,u.ProfilePic }).First();
 
             var messages = msgslist.Select(x => x).Reverse();
             var messagelist = new { usersname, messages };
@@ -236,6 +307,9 @@ namespace ChatApplication.Hubs
             var httpContext = Context.GetHttpContext();
             var user1 = httpContext.User;
             var email = user1.FindFirst(ClaimTypes.Name)?.Value;
+            var User = _dbContext.Users.FirstOrDefault(u => u.Email == email);
+            User.IsActive = false;
+            _dbContext.SaveChanges();
             ConnectionId.Remove(email);
             return base.OnDisconnectedAsync(exception);
         }         
