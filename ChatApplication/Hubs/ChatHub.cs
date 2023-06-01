@@ -37,7 +37,7 @@ namespace ChatApplication.Hubs
             }*/
             ConnectionId.Add(email, Context.ConnectionId);
             Clients.Caller.SendAsync("Connected");
-            // Clients.All.SendAsync("refreshChats");
+            Clients.All.SendAsync("refreshChats");
             return base.OnConnectedAsync();
         }
 
@@ -311,6 +311,7 @@ namespace ChatApplication.Hubs
             User.IsActive = false;
             _dbContext.SaveChanges();
             ConnectionId.Remove(email);
+            Clients.All.SendAsync("refreshChats");
             return base.OnDisconnectedAsync(exception);
         }         
     }
