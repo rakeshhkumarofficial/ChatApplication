@@ -172,7 +172,7 @@ namespace ChatApplication.Services
             dm.Token = token;
             response.Data = dm;
             response.StatusCode = 200;
-            response.Message = "Login Successfull";
+            response.Message = "Login Successful";
             return response;
         }
 
@@ -255,7 +255,7 @@ namespace ChatApplication.Services
                 }
                 obj.DateOfBirth = DateTime.Parse(update.DateOfBirth.ToString("yyyy-MM-dd")); 
             }
-            
+            obj.Gender = update.Gender;
             obj.UpdatedAt = DateTime.Now;
             _dbContext.SaveChanges();
             res.Data = obj;

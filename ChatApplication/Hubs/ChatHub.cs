@@ -127,7 +127,7 @@ namespace ChatApplication.Hubs
                 }
                 
                 // OpenAI API key
-                string APIKey = "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";
+                string APIKey = " type your api key";
                 string answer = string.Empty;
 
                 // Create an instance of the OpenAIAPI class with the API key
